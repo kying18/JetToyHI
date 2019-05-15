@@ -35,6 +35,8 @@ private :
   std::vector<std::vector<fastjet::PseudoJet>> constituents_;
   std::vector<std::vector<fastjet::PseudoJet>> constituents1_;
   std::vector<std::vector<fastjet::PseudoJet>> constituents2_;
+  std::vector<fastjet::PseudoJet> subjet1_;
+  std::vector<fastjet::PseudoJet> subjet2_;
 
 public :
   softDropGroomer(double zcut = 0.1, double beta = 0., double r0 = 0.4);
@@ -52,6 +54,8 @@ public :
   std::vector<std::vector<fastjet::PseudoJet>> getConstituents() {return constituents_;}
   std::vector<std::vector<fastjet::PseudoJet>> getConstituents1() {return constituents1_;}
   std::vector<std::vector<fastjet::PseudoJet>> getConstituents2() {return constituents2_;}
+  std::vector<fastjet::PseudoJet> getSubjets1() {return subjet1_;}
+  std::vector<fastjet::PseudoJet> getSubjets2() {return subjet2_;}
 
   std::vector<fastjet::PseudoJet> doGroomingWithJewelSub(jetCollection &c, std::vector<fastjet::PseudoJet> particlesDummy);
   std::vector<fastjet::PseudoJet> doGroomingWithJewelSub(std::vector<fastjet::PseudoJet> v, std::vector<fastjet::PseudoJet> particlesDummy);
@@ -179,8 +183,12 @@ std::vector<fastjet::PseudoJet> softDropGroomer::doGrooming()
         subjets = transformedJet.pieces();
         fastjet::PseudoJet subjet1 = subjets[0];
         fastjet::PseudoJet subjet2 = subjets[1];
+        subjet1_.push_back(subjet1);
+        subjet2_.push_back(subjet2);
         dr12_.push_back(subjet1.delta_R(subjet2));
       } else {
+        subjet1_.push_back(PseudoJet(0,0,0,0));
+        subjet2_.push_back(PseudoJet(0,0,0,0));
         dr12_.push_back(-1.);
       }
 

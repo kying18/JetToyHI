@@ -16,6 +16,8 @@ std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> GetCorrectedSubJe
 std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> GetCorrectedSubJets(std::vector<std::vector<fastjet::PseudoJet>> Jets1, std::vector<std::vector<fastjet::PseudoJet>> Jets2, std::vector<fastjet::PseudoJet> ThermalParticles);
 std::vector<double> CalculateDR(std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> SubJets);
 std::vector<double> CalculateZG(std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> SubJets);
+std::vector<fastjet::PseudoJet> CalculateSubjet1(std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> Input);
+std::vector<fastjet::PseudoJet> CalculateSubjet2(std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> Input);
 
 fastjet::PseudoJet GetCorrection(std::vector<fastjet::PseudoJet> Constituents, std::vector<fastjet::PseudoJet> ThermalParticles)
 {
@@ -123,6 +125,22 @@ std::vector<double> CalculateZG(std::vector<std::pair<fastjet::PseudoJet, fastje
          zg = min(pt1, pt2) / (pt1 + pt2);
       Result.push_back(zg);
    }
+   return Result;
+}
+
+std::vector<fastjet::PseudoJet> CalculateSubjet1(std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> Input)
+{
+   std::vector<fastjet::PseudoJet> Result;
+   for(auto J : Input)
+      Result.push_back(J.first);
+   return Result;
+}
+
+std::vector<fastjet::PseudoJet> CalculateSubjet2(std::vector<std::pair<fastjet::PseudoJet, fastjet::PseudoJet>> Input)
+{
+   std::vector<fastjet::PseudoJet> Result;
+   for(auto J : Input)
+      Result.push_back(J.second);
    return Result;
 }
 

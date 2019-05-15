@@ -99,6 +99,10 @@ void treeWriter::addJetCollection(std::string name, const jetCollection &c, bool
 {
   addJetCollection(name, c.getJet(), writeConst);
 
+  std::vector<std::string> jetKeys = c.getListOfKeysJet();
+  for(std::string tag: jetKeys)
+    addJetCollection(tag, c.getVectorJet(tag));
+
   std::vector<std::string> doubleKeys = c.getListOfKeysDouble();
   for(std::string tag: doubleKeys)
     addDoubleCollection(tag, c.getVectorDouble(tag));
