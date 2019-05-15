@@ -12,11 +12,12 @@
 #include "fastjet/contrib/SoftDrop.hh"
 
 #include "jetCollection.hh"
+#include "jewelMatcher.hh"
 
 //---------------------------------------------------------------
 // Description
 // This class runs SoftDrop grooming on a set of jets
-// Author: M. Verweij
+// Author: M. Verweij, Y. Chen
 //---------------------------------------------------------------
 
 class softDropGroomer {
@@ -31,6 +32,9 @@ private :
   std::vector<double>             zg_;         //zg of groomed jets
   std::vector<int>                drBranches_; //dropped branches
   std::vector<double>             dr12_;       //distance between the two subjets
+  std::vector<std::vector<fastjet::PseudoJet>> constituents_;
+  std::vector<std::vector<fastjet::PseudoJet>> constituents1_;
+  std::vector<std::vector<fastjet::PseudoJet>> constituents2_;
 
 public :
   softDropGroomer(double zcut = 0.1, double beta = 0., double r0 = 0.4);
@@ -45,6 +49,13 @@ public :
   std::vector<fastjet::PseudoJet> doGrooming(jetCollection &c);
   std::vector<fastjet::PseudoJet> doGrooming(std::vector<fastjet::PseudoJet> v);
   std::vector<fastjet::PseudoJet> doGrooming();
+  std::vector<std::vector<fastjet::PseudoJet>> getConstituents() {return constituents_;}
+  std::vector<std::vector<fastjet::PseudoJet>> getConstituents1() {return constituents1_;}
+  std::vector<std::vector<fastjet::PseudoJet>> getConstituents2() {return constituents2_;}
+
+  std::vector<fastjet::PseudoJet> doGroomingWithJewelSub(jetCollection &c, std::vector<fastjet::PseudoJet> particlesDummy);
+  std::vector<fastjet::PseudoJet> doGroomingWithJewelSub(std::vector<fastjet::PseudoJet> v, std::vector<fastjet::PseudoJet> particlesDummy);
+  std::vector<fastjet::PseudoJet> doGroomingWithJewelSub(std::vector<fastjet::PseudoJet> particlesDummy);
 };
 
 softDropGroomer::softDropGroomer(double zcut, double beta, double r0)
@@ -109,12 +120,15 @@ std::vector<fastjet::PseudoJet> softDropGroomer::doGrooming()
    zg_.reserve(fjInputs_.size());
    drBranches_.reserve(fjInputs_.size());
    dr12_.reserve(fjInputs_.size());
+   constituents_.reserve(fjInputs_.size());
+   constituents1_.reserve(fjInputs_.size());
+   constituents2_.reserve(fjInputs_.size());
    
    for(fastjet::PseudoJet& jet : fjInputs_) {
       std::vector<fastjet::PseudoJet> particles, ghosts;
       fastjet::SelectorIsPureGhost().sift(jet.constituents(), ghosts, particles);
 
-      fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm,999.);
+      fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, 999.);
       fastjet::ClusterSequence cs(particles, jet_def);
 
       std::vector<fastjet::PseudoJet> tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
@@ -122,6 +136,8 @@ std::vector<fastjet::PseudoJet> softDropGroomer::doGrooming()
          fjOutputs_.push_back(fastjet::PseudoJet(0.,0.,0.,0.));
          zg_.push_back(-1.);
          drBranches_.push_back(-1.);
+         constituents1_.push_back(std::vector<fastjet::PseudoJet>());
+         constituents2_.push_back(std::vector<fastjet::PseudoJet>());
          continue;
       }
 
@@ -133,10 +149,25 @@ std::vector<fastjet::PseudoJet> softDropGroomer::doGrooming()
          fjOutputs_.push_back(fastjet::PseudoJet(0.,0.,0.,0.));
          zg_.push_back(-1.);
          drBranches_.push_back(-1.);
+         constituents1_.push_back(std::vector<fastjet::PseudoJet>());
+         constituents2_.push_back(std::vector<fastjet::PseudoJet>());
          if(sd) { delete sd; sd = 0;}
          continue;
       }
       transformedJet = (*sd)(transformedJet);
+
+      fastjet::PseudoJet j1, j2;
+      if(transformedJet.has_parents(j1, j2) == true)
+      {
+         constituents1_.push_back(j1.constituents());
+         constituents2_.push_back(j2.constituents());
+      }
+      else
+      {
+         constituents1_.push_back(std::vector<fastjet::PseudoJet>());
+         constituents2_.push_back(std::vector<fastjet::PseudoJet>());
+      }
+      constituents_.push_back(transformedJet.constituents());
 
       double zg = transformedJet.structure_of<fastjet::contrib::SoftDrop>().symmetry();
       int ndrop = transformedJet.structure_of<fastjet::contrib::SoftDrop>().dropped_count();
@@ -161,5 +192,108 @@ std::vector<fastjet::PseudoJet> softDropGroomer::doGrooming()
    }
    return fjOutputs_;
 }
+
+std::vector<fastjet::PseudoJet> softDropGroomer::doGroomingWithJewelSub(jetCollection &c, std::vector<fastjet::PseudoJet> particlesDummy)
+{
+  return doGroomingWithJewelSub(c.getJet(),particlesDummy);
+}
+
+std::vector<fastjet::PseudoJet> softDropGroomer::doGroomingWithJewelSub(std::vector<fastjet::PseudoJet> v, std::vector<fastjet::PseudoJet> particlesDummy)
+{
+  setInputJets(v);
+  return doGroomingWithJewelSub(particlesDummy);
+}
+
+std::vector<fastjet::PseudoJet> softDropGroomer::doGroomingWithJewelSub(std::vector<fastjet::PseudoJet> particlesDummy)
+{
+   fjOutputs_.reserve(fjInputs_.size());
+   zg_.reserve(fjInputs_.size());
+   drBranches_.reserve(fjInputs_.size());
+   dr12_.reserve(fjInputs_.size());
+   constituents_.reserve(fjInputs_.size());
+   constituents1_.reserve(fjInputs_.size());
+   constituents2_.reserve(fjInputs_.size());
+   
+   for(fastjet::PseudoJet& jet : fjInputs_) {
+      std::vector<fastjet::PseudoJet> particles, ghosts;
+      fastjet::SelectorIsPureGhost().sift(jet.constituents(), ghosts, particles);
+
+      fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, fastjet::JetDefinition::max_allowable_R);
+      fastjet::ClusterSequence cs(particles, jet_def);
+
+      //std::cout << "reclustered with CA" << std::endl;
+      std::vector<fastjet::PseudoJet> tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
+      if(tempJets.size()<1) {
+         fjOutputs_.push_back(fastjet::PseudoJet(0.,0.,0.,0.));
+         zg_.push_back(-1.);
+         drBranches_.push_back(-1.);
+         constituents1_.push_back(std::vector<fastjet::PseudoJet>());
+         constituents2_.push_back(std::vector<fastjet::PseudoJet>());
+         continue;
+      }
+
+      fastjet::PseudoJet CurrentJet = tempJets[0];
+      fastjet::PseudoJet Part1, Part2;
+      fastjet::PseudoJet sj1, sj2;
+      double zg = -1.;
+      int ndrop = 0;
+
+      // std::cout << "start grooming procedure" << std::endl;
+      while(CurrentJet.has_parents(Part1, Part2)) {
+
+        if (CurrentJet.pt2() <= 0) break;
+        
+        zg = -1.;
+
+        double deltaRsq = Part1.squared_distance(Part2);
+        double cut = zcut_ * std::pow(deltaRsq / r0_/r0_, 0.5*beta_);
+
+        sj1 = GetCorrectedJet(Part1,particlesDummy);
+        sj2 = GetCorrectedJet(Part2,particlesDummy);
+        
+        if(sj1.pt() + sj2.pt() > 0 && sj1.E()>0. && sj2.E()>0. && sj1.m()>0. && sj2.m()>0.)
+          zg = min(sj1.pt(), sj2.pt()) / (sj1.pt() + sj2.pt());
+        
+        if(zg<cut) {
+          if(sj1.pt() > sj2.pt())
+            CurrentJet = Part1;
+          else
+            CurrentJet = Part2;
+          zg = -1.;
+          ++ndrop;
+        } else {
+          break;
+        }
+      }
+      
+      //build groomed jet
+      fastjet::PseudoJet transformedJet;
+      if(zg>0.)
+        transformedJet = fastjet::PseudoJet(sj1.px()+sj2.px(),sj1.py()+sj2.py(),sj1.pz()+sj2.pz(),sj1.E()+sj2.E());
+
+      if ( transformedJet == 0 ) {
+         fjOutputs_.push_back(fastjet::PseudoJet(0.,0.,0.,0.));
+         zg_.push_back(-1.);
+         drBranches_.push_back(-1.);
+         constituents1_.push_back(std::vector<fastjet::PseudoJet>());
+         constituents2_.push_back(std::vector<fastjet::PseudoJet>());
+      } else {
+        //storing unsubtracted constituents of the subjets
+        if(Part1.has_constituents ()) constituents1_.push_back(Part1.constituents());
+        if(Part2.has_constituents ()) constituents2_.push_back(Part2.constituents());
+        
+        //get distance between the two subjets
+        //double deltaR = std::sqrt((sj1.eta() -  sj2.eta())*(sj1.eta() - sj2.eta()) + (sj1.delta_phi_to(sj2))*(sj2.delta_phi_to(sj1)));
+        double deltaR = sj1.delta_R(sj2);
+        
+        fjOutputs_.push_back( transformedJet ); //put CA reclusterd jet after softDrop into vector
+        zg_.push_back(zg);
+        dr12_.push_back(deltaR);
+        drBranches_.push_back(ndrop);
+      }
+   } //jet loop
+   return fjOutputs_;
+}
+
 
 #endif

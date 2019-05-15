@@ -22,20 +22,21 @@
 #include "include/jetMatcher.hh"
 #include "include/randomCones.hh"
 #include "include/Angularity.hh"
+#include "include/jewelMatcher.hh"
 
 using namespace std;
 using namespace fastjet;
 
 int main (int argc, char ** argv) {
 
-  auto start_time = std::chrono::steady_clock::now();
+  auto start_time = chrono::steady_clock::now();
   
   CmdLine cmdline(argc,argv);
   // inputs read from command line
   int nEvent = cmdline.value<int>("-nev",1);  // first argument: command line option; second argument: default value
   //bool verbose = cmdline.present("-verbose");
 
-  std::cout << "will run on " << nEvent << " events" << std::endl;
+  cout << "will run on " << nEvent << " events" << endl;
 
   // Uncomment to silence fastjet banner
   ClusterSequence::set_fastjet_banner_stream(NULL);
@@ -48,12 +49,12 @@ int main (int argc, char ** argv) {
   double ghostRapMax         = 6.0;
   double ghost_area          = 0.005;
   int    active_area_repeats = 1;
-  fastjet::GhostedAreaSpec ghost_spec(ghostRapMax, active_area_repeats, ghost_area);
-  fastjet::AreaDefinition area_def = fastjet::AreaDefinition(fastjet::active_area,ghost_spec);
-  fastjet::JetDefinition jet_def(antikt_algorithm, R);
+  GhostedAreaSpec ghost_spec(ghostRapMax, active_area_repeats, ghost_area);
+  AreaDefinition area_def = AreaDefinition(active_area,ghost_spec);
+  JetDefinition jet_def(antikt_algorithm, R);
 
   double jetRapMax = 3.0;
-  fastjet::Selector jet_selector = SelectorAbsRapMax(jetRapMax);
+  Selector jet_selector = SelectorAbsRapMax(jetRapMax);
 
   Angularity width(1.,1.,R);
   Angularity pTD(0.,2.,R);
@@ -74,34 +75,46 @@ int main (int argc, char ** argv) {
     Bar.Update(iev);
     Bar.PrintWithMod(entryDiv);
 
-    std::vector<fastjet::PseudoJet> particlesMerged = mixer.particles();
+    vector<PseudoJet> particlesMerged = mixer.particles();
 
-    std::vector<double> eventWeight;
+    vector<double> eventWeight;
     eventWeight.push_back(mixer.hard_weight());
     eventWeight.push_back(mixer.pu_weight());
 
     // cluster hard event only
-    std::vector<fastjet::PseudoJet> particlesBkg, particlesSig;
-    SelectorIsHard().sift(particlesMerged, particlesSig, particlesBkg); // this sifts the full event into two vectors of PseudoJet, one for the hard event, one for the underlying event
-    
+    vector<PseudoJet> particlesDummy, particlesReal;
+    vector<PseudoJet> particlesBkg, particlesSig;
+    SelectorVertexNumber(-1).sift(particlesMerged, particlesDummy, particlesReal);
+    SelectorVertexNumber(0).sift(particlesReal, particlesSig, particlesBkg);
+
+    for(int i = 0; i < (int)particlesDummy.size(); i++)
+    {
+       if(particlesDummy[i].perp() < 1e-5 && fabs(particlesDummy[i].pz()) > 2000)
+       {
+          particlesDummy.erase(particlesDummy.begin() + i);
+          i = i - 1;
+       }
+    }
+
     //---------------------------------------------------------------------------
     //   jet clustering
     //---------------------------------------------------------------------------
     
     // run the clustering, extract the jets
-    fastjet::ClusterSequenceArea csMerged(particlesMerged, jet_def, area_def);
+    ClusterSequenceArea csMerged(particlesMerged, jet_def, area_def);
     jetCollection jetCollectionMerged(sorted_by_pt(jet_selector(csMerged.inclusive_jets())));
 
-    // fastjet::ClusterSequenceArea csBkg(particlesBkg, jet_def, area_def);
+    // ClusterSequenceArea csBkg(particlesBkg, jet_def, area_def);
     // jetCollection jetCollectionBkg(sorted_by_pt(csBkg.inclusive_jets()));
 
-    fastjet::ClusterSequenceArea csSig(particlesSig, jet_def, area_def);
+    ClusterSequenceArea csSig(particlesSig, jet_def, area_def);
     jetCollection jetCollectionSig(sorted_by_pt(jet_selector(csSig.inclusive_jets(10.))));
+    jetCollection jetCollectionSigJewel(GetCorrectedJets(jetCollectionSig.getJet(), particlesDummy));
 
     //calculate some angularities
-    std::vector<double> widthSig; widthSig.reserve(jetCollectionSig.getJet().size());
-    std::vector<double> pTDSig;   pTDSig.reserve(jetCollectionSig.getJet().size());
-    for(fastjet::PseudoJet jet : jetCollectionSig.getJet()) {
+    vector<double> widthSig; widthSig.reserve(jetCollectionSig.getJet().size());
+    vector<double> pTDSig;   pTDSig.reserve(jetCollectionSig.getJet().size());
+    for(PseudoJet jet : jetCollectionSig.getJet()) {
       widthSig.push_back(width.result(jet));
       pTDSig.push_back(pTD.result(jet));
     }
@@ -116,15 +129,16 @@ int main (int argc, char ** argv) {
     csSubtractor csSub(R, 1., -1, 0.005,ghostRapMax,jetRapMax);
     csSub.setInputParticles(particlesMerged);
     jetCollection jetCollectionCS(csSub.doSubtraction());
+    jetCollection jetCollectionCSJewel(GetCorrectedJets(jetCollectionCS.getJet(), particlesDummy));
 
     //Background densities used by constituent subtraction
-    std::vector<double> rho;    rho.push_back(csSub.getRho());
-    std::vector<double> rhom;   rhom.push_back(csSub.getRhoM());
+    vector<double> rho;    rho.push_back(csSub.getRho());
+    vector<double> rhom;   rhom.push_back(csSub.getRhoM());
 
     //calculate some angularities
-    std::vector<double> widthCS; widthCS.reserve(jetCollectionCS.getJet().size());
-    std::vector<double> pTDCS;   pTDCS.reserve(jetCollectionCS.getJet().size());
-    for(fastjet::PseudoJet jet : jetCollectionCS.getJet()) {
+    vector<double> widthCS; widthCS.reserve(jetCollectionCS.getJet().size());
+    vector<double> pTDCS;   pTDCS.reserve(jetCollectionCS.getJet().size());
+    for(PseudoJet jet : jetCollectionCS.getJet()) {
       widthCS.push_back(width.result(jet));
       pTDCS.push_back(pTD.result(jet));
     }
@@ -132,15 +146,15 @@ int main (int argc, char ** argv) {
     jetCollectionCS.addVector("pTDCS", pTDCS);
 
     //run full event constituent subtraction on mixed (hard+UE) event
-    csSubtractorFullEvent csSubGlobal(1., R, 0.005,ghostRapMax);
-    csSubGlobal.setRho(rho[0]);
-    csSubGlobal.setRhom(rhom[0]);
-    csSubGlobal.setInputParticles(particlesMerged);
-    std::vector<fastjet::PseudoJet> csEvent = csSubGlobal.doSubtraction();
+    // csSubtractorFullEvent csSubGlobal(1., R, 0.005,ghostRapMax);
+    // csSubGlobal.setRho(rho[0]);
+    // csSubGlobal.setRhom(rhom[0]);
+    // csSubGlobal.setInputParticles(particlesMerged);
+    // vector<PseudoJet> csEvent = csSubGlobal.doSubtraction();
 
     //cluster jets from constituent subtracted event
-    fastjet::ClusterSequenceArea csGlobal(csEvent, jet_def, area_def);
-    jetCollection jetCollectionCSGlobal(sorted_by_pt(jet_selector(csGlobal.inclusive_jets())));
+    // ClusterSequenceArea csGlobal(csEvent, jet_def, area_def);
+    // jetCollection jetCollectionCSGlobal(sorted_by_pt(jet_selector(csGlobal.inclusive_jets())));
 
     //Uncomment if youw ant to study random cones
     // randomCones rc(4,R,2.3,rho[0]);
@@ -150,12 +164,12 @@ int main (int argc, char ** argv) {
     //run soft killer on mixed event
     skSubtractor skSub(0.4, 3.0);
     skSub.setInputParticles(particlesMerged);
-    std::vector<fastjet::PseudoJet> skEvent = skSub.doSubtraction();
-    std::vector<double> skPtThreshold;
+    vector<PseudoJet> skEvent = skSub.doSubtraction();
+    vector<double> skPtThreshold;
     skPtThreshold.push_back(skSub.getPtThreshold()); //SoftKiller pT threshold
 
     //cluster jets for soft killed event
-    fastjet::ClusterSequenceArea csSK(skEvent, jet_def, area_def);
+    ClusterSequenceArea csSK(skEvent, jet_def, area_def);
     jetCollection jetCollectionSK(sorted_by_pt(jet_selector(csSK.inclusive_jets())));
 
     //---------------------------------------------------------------------------
@@ -168,6 +182,11 @@ int main (int argc, char ** argv) {
     jetCollectionCSSD.addVector("csJetSDzg",    sdgCS.getZgs());
     jetCollectionCSSD.addVector("csJetSDndrop", sdgCS.getNDroppedSubjets());
     jetCollectionCSSD.addVector("csJetSDdr12",  sdgCS.getDR12());
+    
+    jetCollection jetCollectionCSSDJewel(GetCorrectedJets(sdgCS.getConstituents(), particlesDummy));
+    vector<pair<PseudoJet, PseudoJet>> CSSDJewel = GetCorrectedSubJets(sdgCS.getConstituents1(), sdgCS.getConstituents2(), particlesDummy);
+    jetCollectionCSSDJewel.addVector("csJetSDJewelzg",   CalculateZG(CSSDJewel));
+    jetCollectionCSSDJewel.addVector("csJetSDJeweldr12", CalculateDR(CSSDJewel));
 
     //SoftDrop grooming classic for signal jets (zcut=0.1, beta=0)
     softDropGroomer sdgSig(0.1, 0.0, R);
@@ -175,6 +194,11 @@ int main (int argc, char ** argv) {
     jetCollectionSigSD.addVector("sigJetSDZg",    sdgSig.getZgs());
     jetCollectionSigSD.addVector("sigJetSDndrop", sdgSig.getNDroppedSubjets());
     jetCollectionSigSD.addVector("sigJetSDdr12",  sdgSig.getDR12());
+    
+    jetCollection jetCollectionSigSDJewel(GetCorrectedJets(sdgSig.getConstituents(), particlesDummy));
+    vector<pair<PseudoJet, PseudoJet>> SigSDJewel = GetCorrectedSubJets(sdgSig.getConstituents1(), sdgSig.getConstituents2(), particlesDummy);
+    jetCollectionSigSDJewel.addVector("sigJetSDJewelzg",   CalculateZG(SigSDJewel));
+    jetCollectionSigSDJewel.addVector("sigJetSDJeweldr12", CalculateDR(SigSDJewel));
     
     //match the CS jets to signal jets
     jetMatcher jmCS(R);
@@ -184,6 +208,8 @@ int main (int argc, char ** argv) {
 
     jmCS.reorderedToTag(jetCollectionCS);
     jmCS.reorderedToTag(jetCollectionCSSD);
+    jmCS.reorderedToTag(jetCollectionCSJewel);
+    jmCS.reorderedToTag(jetCollectionCSSDJewel);
 
     //match the SK jets to signal jets
     jetMatcher jmSK(R);
@@ -194,12 +220,12 @@ int main (int argc, char ** argv) {
     jmSK.reorderedToTag(jetCollectionSK);
 
     //match the jets from full-event CS subtraction to signal jets
-    jetMatcher jmCSGlobal(R);
-    jmCSGlobal.setBaseJets(jetCollectionCSGlobal);
-    jmCSGlobal.setTagJets(jetCollectionSig);
-    jmCSGlobal.matchJets();
-    
-    jmCSGlobal.reorderedToTag(jetCollectionCSGlobal);
+    // jetMatcher jmCSGlobal(R);
+    // jmCSGlobal.setBaseJets(jetCollectionCSGlobal);
+    // jmCSGlobal.setTagJets(jetCollectionSig);
+    // jmCSGlobal.matchJets();
+    // 
+    // jmCSGlobal.reorderedToTag(jetCollectionCSGlobal);
     
     //match the unsubtracted jets to signal jets
     jetMatcher jmUnSub(R);
@@ -214,15 +240,19 @@ int main (int argc, char ** argv) {
     //---------------------------------------------------------------------------
     
     //Give variable we want to write out to treeWriter.
-    //Only vectors of the types 'jetCollection', and 'double', 'int', 'fastjet::PseudoJet' are supported
+    //Only vectors of the types 'jetCollection', and 'double', 'int', 'PseudoJet' are supported
 
     trw.addCollection("sigJet",        jetCollectionSig);
+    trw.addCollection("sigJetJewel",   jetCollectionSigJewel);
     trw.addCollection("csJet",         jetCollectionCS);
+    trw.addCollection("csJetJewel",    jetCollectionCSJewel);
     trw.addCollection("sigJetSD",      jetCollectionSigSD);
+    trw.addCollection("sigJetSDJewel", jetCollectionSigSDJewel);
     trw.addCollection("csJetSD",       jetCollectionCSSD);
+    trw.addCollection("csJetSDJewel",  jetCollectionCSSDJewel);
     trw.addCollection("skJet",         jetCollectionSK);
-    trw.addCollection("csGlobJet",     jetCollectionCSGlobal);
-    //trw.addCollection("randomCones",   jetCollectionRC);
+    // trw.addCollection("csGlobJet",     jetCollectionCSGlobal);
+    // trw.addCollection("randomCones",   jetCollectionRC);
 
     trw.addCollection("csRho",         rho);
     trw.addCollection("csRhom",        rhom);
@@ -241,12 +271,12 @@ int main (int argc, char ** argv) {
 
   TTree *trOut = trw.getTree();
 
-  TFile *fout = new TFile("JetToyHIResultFromFile.root","RECREATE");
+  TFile *fout = new TFile(cmdline.value<string>("-output", "JetToyHIResultFromFile.root").c_str(), "RECREATE");
   trOut->Write();
   fout->Write();
   fout->Close();
 
-  double time_in_seconds = std::chrono::duration_cast<std::chrono::milliseconds>
-    (std::chrono::steady_clock::now() - start_time).count() / 1000.0;
-  std::cout << "runFromFile: " << time_in_seconds << std::endl;
+  double time_in_seconds = chrono::duration_cast<chrono::milliseconds>
+    (chrono::steady_clock::now() - start_time).count() / 1000.0;
+  cout << "runFromFile: " << time_in_seconds << endl;
 }
