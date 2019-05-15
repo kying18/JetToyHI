@@ -45,7 +45,7 @@ int main (int argc, char *argv[])
    ClusterSequence::set_fastjet_banner_stream(NULL);
 
    //to write info to root tree
-   treeWriter trw("jetTree");
+   treeWriter Writer("JetTree");
 
    //Jet definition
    double R                   = 0.4;
@@ -54,7 +54,11 @@ int main (int argc, char *argv[])
    int    active_area_repeats = 1;
    GhostedAreaSpec ghost_spec(ghostRapMax, active_area_repeats, ghost_area);
    AreaDefinition area_def = AreaDefinition(active_area,ghost_spec);
-   JetDefinition jet_def(antikt_algorithm, R);
+   JetDefinition JetDefinition02(antikt_algorithm, 0.2);
+   JetDefinition JetDefinition04(antikt_algorithm, 0.4);
+   JetDefinition JetDefinition06(antikt_algorithm, 0.6);
+   JetDefinition JetDefinition08(antikt_algorithm, 0.8);
+   JetDefinition JetDefinition10(antikt_algorithm, 1.0);
    JetDefinition WTADefinition(antikt_algorithm, 10.0, WTA_pt_scheme);
 
    double jetRapMax = 3.0;
@@ -163,54 +167,83 @@ int main (int argc, char *argv[])
       //   Hemisphere clustering
       //---------------------------------------------------------------------------
       
-      ClusterSequence
+      ClusterSequence HemisphereSignalCluster(HemisphereSignal, WTADefinition);
+      jetCollection HemisphereJetSignal(HemisphereSignalCluster.exclusive_jets(1));
+      
+      ClusterSequence HemisphereAllCluster(HemisphereAll, WTADefinition);
+      jetCollection HemisphereJetAll(HemisphereAllCluster.exclusive_jets(1));
 
       //---------------------------------------------------------------------------
       //   Jet clustering
       //---------------------------------------------------------------------------
 
-      ClusterSequenceArea ClusterSignal(ParticlesSignal, jet_def, area_def);
-      jetCollection JetCollectionSignal(sorted_by_pt(jet_selector(ClusterSignal.inclusive_jets())));
-      jetCollection JetCollectionSignalJewel(GetCorrectedJets(JetCollectionSignal.getJet(), ParticlesDummy));
+      ClusterSequenceArea ClusterSignal04(ParticlesSignal, JetDefinition04, area_def);
+      jetCollection JCSignal04(sorted_by_pt(jet_selector(ClusterSignal04.inclusive_jets())));
+      jetCollection JCSignal04Jewel(GetCorrectedJets(JCSignal04.getJet(), ParticlesDummy));
+      
+      ClusterSequenceArea ClusterAll04(ParticlesReal, JetDefinition04, area_def);
+      jetCollection JCAll04(sorted_by_pt(jet_selector(ClusterAll04.inclusive_jets())));
+      jetCollection JCAll04Jewel(GetCorrectedJets(JCAll04.getJet(), ParticlesDummy));
 
       //---------------------------------------------------------------------------
       //   Groom the jets
       //---------------------------------------------------------------------------
 
-      softDropGroomer SoftDropSignal(0.1, 0.0, R);
-      jetCollection JetCollectionSignalSD(SoftDropSignal.doGrooming(JetCollectionSignal));
-      JetCollectionSignalSD.addVector("SignalJetSDZG",      SoftDropSignal.getZgs());
-      JetCollectionSignalSD.addVector("SignalJetSDNBranch", SoftDropSignal.getNDroppedSubjets());
-      JetCollectionSignalSD.addVector("SignalJetSDDR12",    SoftDropSignal.getDR12());
+      softDropGroomer SDSignal04(0.1, 0.0, R);
+      jetCollection JCSignal04SD(SDSignal04.doGrooming(JCSignal04));
+      JCSignal04SD.addVector("SignalJet04SDZG",      SDSignal04.getZgs());
+      JCSignal04SD.addVector("SignalJet04SDNBranch", SDSignal04.getNDroppedSubjets());
+      JCSignal04SD.addVector("SignalJet04SDDR12",    SDSignal04.getDR12());
 
-      jetCollection JetCollectionSignalSDJewel(GetCorrectedJets(SoftDropSignal.getConstituents(), ParticlesDummy));
-      vector<pair<PseudoJet, PseudoJet>> SigSDJewel
-         = GetCorrectedSubJets(SoftDropSignal.getConstituents1(), SoftDropSignal.getConstituents2(), ParticlesDummy);
-      JetCollectionSignalSDJewel.addVector("SignalJetSDJewelZG",   CalculateZG(SigSDJewel));
-      JetCollectionSignalSDJewel.addVector("SignalJetSDJewelDR12", CalculateDR(SigSDJewel));
+      jetCollection JCSignal04SDJewel(GetCorrectedJets(SDSignal04.getConstituents(), ParticlesDummy));
+      vector<pair<PseudoJet, PseudoJet>> Signal04SDJewel
+         = GetCorrectedSubJets(SDSignal04.getConstituents1(), SDSignal04.getConstituents2(), ParticlesDummy);
+      JCSignal04SDJewel.addVector("SignalJet04SDJewelZG",   CalculateZG(Signal04SDJewel));
+      JCSignal04SDJewel.addVector("SignalJet04SDJewelDR12", CalculateDR(Signal04SDJewel));
+
+      softDropGroomer SDAll04(0.1, 0.0, R);
+      jetCollection JCAll04SD(SDAll04.doGrooming(JCAll04));
+      JCAll04SD.addVector("AllJet04SDZG",      SDAll04.getZgs());
+      JCAll04SD.addVector("AllJet04SDNBranch", SDAll04.getNDroppedSubjets());
+      JCAll04SD.addVector("AllJet04SDDR12",    SDAll04.getDR12());
+
+      jetCollection JCAll04SDJewel(GetCorrectedJets(SDAll04.getConstituents(), ParticlesDummy));
+      vector<pair<PseudoJet, PseudoJet>> All04SDJewel
+         = GetCorrectedSubJets(SDAll04.getConstituents1(), SDAll04.getConstituents2(), ParticlesDummy);
+      JCAll04SDJewel.addVector("AllJet04SDJewelZG",   CalculateZG(All04SDJewel));
+      JCAll04SDJewel.addVector("AllJet04SDJewelDR12", CalculateDR(All04SDJewel));
 
       //---------------------------------------------------------------------------
       //   Write tree
       //---------------------------------------------------------------------------
 
-      //Give variable we want to write out to treeWriter.
-      //Only vectors of the types 'jetCollection', and 'double', 'int', 'PseudoJet' are supported
+      // Give variable we want to write out to treeWriter.
+      // Only vectors of the types 'jetCollection', and 'double', 'int', 'PseudoJet' are supported
 
-      trw.addCollection("SignalJet",        JetCollectionSignal);
-      trw.addCollection("SignalJetJewel",   JetCollectionSignalJewel);
-      trw.addCollection("SignalJetSD",      JetCollectionSignalSD);
-      trw.addCollection("SignalJetSDJewel", JetCollectionSignalSDJewel);
-      trw.addCollection("EventWeight",      EventWeight);
+      Writer.addCollection("SignalJet04",        JCSignal04);
+      Writer.addCollection("SignalJet04Jewel",   JCSignal04Jewel);
+      Writer.addCollection("SignalJet04SD",      JCSignal04SD);
+      Writer.addCollection("SignalJet04SDJewel", JCSignal04SDJewel);
+      
+      Writer.addCollection("AllJet04",           JCAll04);
+      Writer.addCollection("AllJet04Jewel",      JCAll04Jewel);
+      Writer.addCollection("AllJet04SD",         JCAll04SD);
+      Writer.addCollection("AllJet04SDJewel",    JCAll04SDJewel);
 
-      trw.fillTree();
+      Writer.addCollection("HemisphereSignal", HemisphereJetSignal);
+      Writer.addCollection("HemisphereAll",    HemisphereJetAll);
 
-   }//event loop
+      Writer.addCollection("EventWeight",      EventWeight);
+
+      Writer.fillTree();
+
+   } //event loop
 
    Bar.Update(nEvent);
    Bar.Print();
    Bar.PrintLine();
 
-   TTree *trOut = trw.getTree();
+   TTree *trOut = Writer.getTree();
 
    TFile *fout = new TFile(cmdline.value<string>("-output", "JetToyHIResulJewelSub.root").c_str(), "RECREATE");
    trOut->Write();
