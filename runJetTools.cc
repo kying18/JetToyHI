@@ -37,15 +37,16 @@
 using namespace std;
 using namespace fastjet;
 
-//./runJewelSub -hard  /eos/project/j/jetquenching/JetWorkshop2017/samples/jewel/DiJet/RecoilOn_0_10/Jewel_0_T_0.pu14 -pileup XXXXX -nev 10
+// ./runJewelSub -hard  /eos/project/j/jetquenching/JetWorkshop2017/samples/jewel/DiJet/RecoilOn_0_10/Jewel_0_T_0.pu14 -pileup XXXXX -nev 10
 
-int main (int argc, char *argv[]);
+int main(int argc, char *argv[]);
 bool CompareJet(PseudoJet &J1, PseudoJet &J2);
-void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area, double R,
+void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
+   JetDefinition &SubjetDefinition, JetDefinition &WTADefinition, double R,
    vector<PseudoJet> &Particles, vector<PseudoJet> &Dummy,
    Selector &JetSelector, string Tag);
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
    auto start_time = chrono::steady_clock::now();
 
@@ -67,7 +68,8 @@ int main (int argc, char *argv[])
    double ghost_area          = 0.005;
    int    active_area_repeats = 1;
    GhostedAreaSpec ghost_spec(ghostRapMax, active_area_repeats, ghost_area);
-   AreaDefinition area_def = AreaDefinition(active_area, ghost_spec);
+   AreaDefinition Area = AreaDefinition(active_area, ghost_spec);
+   JetDefinition JetDefinition01(antikt_algorithm, 0.1);
    JetDefinition JetDefinition02(antikt_algorithm, 0.2);
    JetDefinition JetDefinition04(antikt_algorithm, 0.4);
    JetDefinition JetDefinition06(antikt_algorithm, 0.6);
@@ -132,7 +134,7 @@ int main (int argc, char *argv[])
       vector<PseudoJet> LeadingHadron;
       for(int i = 0; i < (int)ParticlesReal.size(); i++)
       {
-         const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
+         const int &ID = ParticlesReal[i].user_info<PU14>().pdg_id();
          if(HepPID::isHadron(ID) == false)
             continue;
          if(ParticlesReal[i].eta() < -3 || ParticlesReal[i].eta() > 3)
@@ -217,29 +219,29 @@ int main (int argc, char *argv[])
       //   Jet clustering
       //---------------------------------------------------------------------------
 
-      DoJet(Writer, JetDefinition02, area_def, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet02");
-      DoJet(Writer, JetDefinition04, area_def, 0.4, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet04");
-      DoJet(Writer, JetDefinition06, area_def, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet06");
-      DoJet(Writer, JetDefinition08, area_def, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet08");
-      DoJet(Writer, JetDefinition10, area_def, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet10");
+      DoJet(Writer, JetDefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet02");
+      DoJet(Writer, JetDefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet04");
+      DoJet(Writer, JetDefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet06");
+      DoJet(Writer, JetDefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet08");
+      DoJet(Writer, JetDefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet10");
       
-      DoJet(Writer, JetDefinition02, area_def, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "AllJet02");
-      DoJet(Writer, JetDefinition04, area_def, 0.4, ParticlesReal, ParticlesDummy, JetSelector, "AllJet04");
-      DoJet(Writer, JetDefinition06, area_def, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "AllJet06");
-      DoJet(Writer, JetDefinition08, area_def, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "AllJet08");
-      DoJet(Writer, JetDefinition10, area_def, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "AllJet10");
+      DoJet(Writer, JetDefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "AllJet02");
+      DoJet(Writer, JetDefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesReal, ParticlesDummy, JetSelector, "AllJet04");
+      DoJet(Writer, JetDefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "AllJet06");
+      DoJet(Writer, JetDefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "AllJet08");
+      DoJet(Writer, JetDefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "AllJet10");
 
-      DoJet(Writer, WTADefinition02, area_def, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet02");
-      DoJet(Writer, WTADefinition04, area_def, 0.4, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet04");
-      DoJet(Writer, WTADefinition06, area_def, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet06");
-      DoJet(Writer, WTADefinition08, area_def, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet08");
-      DoJet(Writer, WTADefinition10, area_def, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet10");
+      DoJet(Writer, WTADefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet02");
+      DoJet(Writer, WTADefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet04");
+      DoJet(Writer, WTADefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet06");
+      DoJet(Writer, WTADefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet08");
+      DoJet(Writer, WTADefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet10");
       
-      DoJet(Writer, WTADefinition02, area_def, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet02");
-      DoJet(Writer, WTADefinition04, area_def, 0.4, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet04");
-      DoJet(Writer, WTADefinition06, area_def, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet06");
-      DoJet(Writer, WTADefinition08, area_def, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet08");
-      DoJet(Writer, WTADefinition10, area_def, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet10");
+      DoJet(Writer, WTADefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet02");
+      DoJet(Writer, WTADefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet04");
+      DoJet(Writer, WTADefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet06");
+      DoJet(Writer, WTADefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet08");
+      DoJet(Writer, WTADefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet10");
 
       //---------------------------------------------------------------------------
       //   Write tree
@@ -251,7 +253,6 @@ int main (int argc, char *argv[])
       Writer.addCollection("LeadingPhoton",    LeadingPhoton);
       Writer.addCollection("HemisphereSignal", HemisphereJetSignal);
       Writer.addCollection("HemisphereAll",    HemisphereJetAll);
-
       Writer.addCollection("LeadingHadron",    LeadingHadron);
       
       Writer.addCollection("EventWeight",      EventWeight);
@@ -281,12 +282,13 @@ bool CompareJet(PseudoJet &J1, PseudoJet &J2)
    return (J1.perp() > J2.perp());
 } 
 
-void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area, double R,
+void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
+   JetDefinition &SubjetDefinition, JetDefinition &WTADefinition, double R,
    vector<PseudoJet> &Particles, vector<PseudoJet> &Dummy,
    Selector &JetSelector, string Tag)
 {
    ClusterSequenceArea Cluster(Particles, Definition, Area);
-   jetCollection JC(sorted_by_pt(JetSelector(Cluster.inclusive_jets())));
+   jetCollection JC(sorted_by_pt(JetSelector(Cluster.inclusive_jets(10))));
    jetCollection JCJewel(GetCorrectedJets(JC.getJet(), Dummy));
 
    softDropGroomer SD(0.1, 0.0, R);
@@ -304,7 +306,30 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area, d
    JCSDJewel.addVector(Tag + "SDJewelDR12",    CalculateDR(SDJewel));
    JCSDJewel.addVector(Tag + "SDJewelSubjet1", CalculateSubjet1(SDJewel));
    JCSDJewel.addVector(Tag + "SDJewelSubjet2", CalculateSubjet2(SDJewel));
-   
+
+   vector<PseudoJet> SJ1, SJ2;
+   for(auto J : JC.getJet())
+   {
+      ClusterSequence SJCluster(J.constituents(), SubjetDefinition);
+      vector<PseudoJet> SJ = sorted_by_pt(SJCluster.inclusive_jets(2));
+      if(SJ.size() > 0)   SJ1.push_back(SJ[0]);
+      else                SJ1.push_back(PseudoJet(0, 0, 0, 0));
+      if(SJ.size() > 1)   SJ2.push_back(SJ[1]);
+      else                SJ2.push_back(PseudoJet(0, 0, 0, 0));
+   }
+   JC.addVector(Tag + "SJ1", SJ1);
+   JC.addVector(Tag + "SJ2", SJ2);
+
+   vector<PseudoJet> WTAAxis;
+   for(auto J : JC.getJet())
+   {
+      ClusterSequence WTACluster(J.constituents(), WTADefinition);
+      vector<PseudoJet> Axis = sorted_by_pt(WTACluster.exclusive_jets(1));
+      if(Axis.size() > 0)   WTAAxis.push_back(Axis[0]);
+      else                  WTAAxis.push_back(PseudoJet(0, 0, 0, 0));
+   }
+   JC.addVector(Tag + "WTAAxis", WTAAxis);
+
    Writer.addCollection(Tag + "",        JC);
    Writer.addCollection(Tag + "Jewel",   JCJewel);
    Writer.addCollection(Tag + "SD",      JCSD);
