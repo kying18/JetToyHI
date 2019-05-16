@@ -209,11 +209,29 @@ int main(int argc, char *argv[])
       //   Hemisphere clustering
       //---------------------------------------------------------------------------
 
-      ClusterSequence HemisphereSignalCluster(HemisphereSignal, WTADefinition);
-      jetCollection HemisphereJetSignal(HemisphereSignalCluster.exclusive_jets(1));
+      if(HemisphereSignal.size() > 0)
+      {
+         ClusterSequence HemisphereSignalCluster(HemisphereSignal, WTADefinition);
+         jetCollection HemisphereJetSignal(HemisphereSignalCluster.exclusive_jets(1));
+         Writer.addCollection("HemisphereSignal", HemisphereJetSignal);
+      }
+      else
+      {
+         jetCollection HemisphereJetSignal();
+         Writer.addCollection("HemisphereSignal", HemisphereSignal);
+      }
 
-      ClusterSequence HemisphereAllCluster(HemisphereAll, WTADefinition);
-      jetCollection HemisphereJetAll(HemisphereAllCluster.exclusive_jets(1));
+      if(HemisphereAll.size() > 0)
+      {
+         ClusterSequence HemisphereAllCluster(HemisphereAll, WTADefinition);
+         jetCollection HemisphereJetAll(HemisphereAllCluster.exclusive_jets(1));
+         Writer.addCollection("HemisphereAll",    HemisphereJetAll);
+      }
+      else
+      {
+         jetCollection HemisphereJetAll();
+         Writer.addCollection("HemisphereAll", HemisphereAll);
+      }
 
       //---------------------------------------------------------------------------
       //   Jet clustering
@@ -251,8 +269,6 @@ int main(int argc, char *argv[])
       // Only vectors of the types 'jetCollection', and 'double', 'int', 'PseudoJet' are supported
 
       Writer.addCollection("LeadingPhoton",    LeadingPhoton);
-      Writer.addCollection("HemisphereSignal", HemisphereJetSignal);
-      Writer.addCollection("HemisphereAll",    HemisphereJetAll);
       Writer.addCollection("LeadingHadron",    LeadingHadron);
       
       Writer.addCollection("EventWeight",      EventWeight);
