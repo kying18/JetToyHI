@@ -2479,6 +2479,27 @@ void Messenger::GetEntry(int Entry)
    else
       LeadingPhoton.SetPtEtaPhiM(0, 0, 0, 0);
 
+   SignalJetR02.clear();
+   SignalJetR04.clear();
+   SignalJetR06.clear();
+   SignalJetR08.clear();
+   SignalJetR10.clear();
+   AllJetR02.clear();
+   AllJetR04.clear();
+   AllJetR06.clear();
+   AllJetR08.clear();
+   AllJetR10.clear();
+   WTASignalJetR02.clear();
+   WTASignalJetR04.clear();
+   WTASignalJetR06.clear();
+   WTASignalJetR08.clear();
+   WTASignalJetR10.clear();
+   WTAAllJetR02.clear();
+   WTAAllJetR04.clear();
+   WTAAllJetR06.clear();
+   WTAAllJetR08.clear();
+   WTAAllJetR10.clear();
+
    for(int i = 0; i < (int)SignalJet02Pt->size(); i++)
    {
       Jet newjet;
