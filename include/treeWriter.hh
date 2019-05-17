@@ -28,6 +28,7 @@ class treeWriter
 private :
   TTree* treeOut_;
   const char *treeName_;
+  std::map<std::string,std::vector<bool>  > boolMaps_;
   std::map<std::string,std::vector<int>  > intMaps_;
   std::map<std::string,std::vector<double>  > doubleMaps_;
   std::map<std::string,std::vector<std::vector<double> >  > doubleVectorMaps_;
@@ -41,10 +42,12 @@ public :
   void addCollection(std::string name, const std::vector<fastjet::PseudoJet> &v, bool writeConst = false);
   void addCollection(std::string name, const std::vector<double> &v);
   void addCollection(std::string name, const std::vector<int> &v);
+  void addCollection(std::string name, const std::vector<bool> &v);
   void addJetCollection(std::string name, const jetCollection &c, bool writeConst = false);
   void addJetCollection(std::string name, const std::vector<fastjet::PseudoJet> v, bool writeConst = false);
   void addDoubleCollection(std::string name, const std::vector<double> v);
   void addIntCollection(std::string name, const std::vector<int> v);
+  void addBoolCollection(std::string name, const std::vector<bool> v);
   void bookBranchDoubleVec(std::string name);
   void bookBranchIntVec(std::string name);
 
@@ -94,6 +97,12 @@ void treeWriter::addCollection(std::string name, const std::vector<int> &v)
 {
   addIntCollection(name, v);
 }
+
+void treeWriter::addCollection(std::string name, const std::vector<bool> &v)
+{
+  addBoolCollection(name, v);
+}
+
 
 void treeWriter::addJetCollection(std::string name, const jetCollection &c, bool writeConst)
 {
@@ -199,6 +208,12 @@ void treeWriter::addDoubleCollection(std::string name, const std::vector<double>
 void treeWriter::addIntCollection(std::string name, const std::vector<int> v)
 {
   intMaps_[name] = v;
+  bookBranchIntVec(name);
+}
+
+void treeWriter::addBoolCollection(std::string name, const std::vector<bool> v)
+{
+  boolMaps_[name] = v;
   bookBranchIntVec(name);
 }
 
