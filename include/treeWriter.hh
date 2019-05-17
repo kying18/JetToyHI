@@ -50,6 +50,7 @@ public :
   void addBoolCollection(std::string name, const std::vector<bool> v);
   void bookBranchDoubleVec(std::string name);
   void bookBranchIntVec(std::string name);
+  void bookBranchBoolVec(std::string name);
 
   void addDoubleVectorCollection(std::string name, const std::vector<std::vector<double>> v);
   void bookBranchDoubleVectorVec(std::string name);
@@ -218,7 +219,7 @@ void treeWriter::addIntCollection(std::string name, const std::vector<int> v)
 void treeWriter::addBoolCollection(std::string name, const std::vector<bool> v)
 {
   boolMaps_[name] = v;
-  bookBranchIntVec(name);
+  bookBranchBoolVec(name);
 }
 
 void treeWriter::bookBranchDoubleVec(std::string name)
@@ -232,6 +233,13 @@ void treeWriter::bookBranchIntVec(std::string name)
   if(!treeOut_->GetBranch(name.c_str()))
     treeOut_->Branch(name.c_str(),&intMaps_[name]);
 }
+
+void treeWriter::bookBranchBoolVec(std::string name)
+{
+  if(!treeOut_->GetBranch(name.c_str()))
+    treeOut_->Branch(name.c_str(),&boolMaps_[name]);
+}
+
 
 void treeWriter::addDoubleVectorCollection(std::string name, const std::vector<std::vector<double> > v)
 {
