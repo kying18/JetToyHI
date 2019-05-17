@@ -25,6 +25,7 @@ private :
    double beta_;   // Beta parameter
    double r0_;     // Jet radius
    double rcut_;   // Termination Criteria
+   int    algorithm_;   // what algorithm to use
 
    std::vector<fastjet::PseudoJet> fjInputs_;     // ungroomed jets
    std::vector<std::vector<double>> zgs_;         // all the zg's in the algorithm
@@ -36,6 +37,7 @@ public :
    void setBeta(double b);
    void setR0(double r) ;
    void setRCut(double r);
+   void setAlgorithm(int algo);
    void setInputJets(const std::vector<fastjet::PseudoJet> &v);
    std::vector<std::vector<double>> GetZGs() {return zgs_;}
    std::vector<std::vector<double>> GetDRs() {return drs_;}
@@ -68,6 +70,11 @@ void softDropCounter::setR0(double r)
 void softDropCounter::setRCut(double r)
 {
    rcut_ = r;
+}
+   
+void softDropCounter::setAlgorithm(int algo)
+{
+   algorithm_ = algo;
 }
 
 void softDropCounter::setInputJets(const std::vector<fastjet::PseudoJet> &v)
@@ -102,7 +109,13 @@ void softDropCounter::run()
       std::vector<fastjet::PseudoJet> particles, ghosts;
       fastjet::SelectorIsPureGhost().sift(jet.constituents(), ghosts, particles);
 
-      fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm,999.);
+      auto algorithm = fastjet::cambridge_algorithm;
+      if(algorithm_ > 0)
+         algorithm = fastjet::kt_algorithm;
+      if(algorithm_ < 0)
+         algorithm = fastjet::antikt_algorithm;
+
+      fastjet::JetDefinition jet_def(algorithm, 999.);
       fastjet::ClusterSequence cs(particles, jet_def);
       std::vector<fastjet::PseudoJet> tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
 
