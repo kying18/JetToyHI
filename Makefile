@@ -1,5 +1,5 @@
 
-# Makefile generated automatically by scripts/mkcxx.pl '-f' '-s' '-1' '-r' '-8' '-IPU14' '-l' '-LPU14 -lPU14 -lz'
+# Makefile generated automatically by scripts/mkcxx.pl '-f' '-1' '-r' '-8' '-IPU14' '-l' '-LPU14 -lPU14 -lz'
 # run 'make make' to update it if you add new files
 
 CXX = g++  # for macs - otherwise get c++ = clang
@@ -11,17 +11,13 @@ FFLAGS = -Wall -O2
 CXXFLAGS += -std=c++11
 LDFLAGS += -std=c++11
 
-FJCONFIG = /Users/mverweij/soft/fastjet330-install/bin/fastjet-config
+FJCONFIG = /data/programs/fastjet/fastjet-3.3.2/../install/bin/fastjet-config
 INCLUDE += `$(FJCONFIG) --cxxflags`
 LIBRARIES  += `$(FJCONFIG) --libs --plugins` -lfastjetcontribfragile
 
-PYTHIA8LOCATION = /Users/mverweij/soft/pythia8235
+PYTHIA8LOCATION = /data/programs/pythia/pythia8240
 INCLUDE += -I$(PYTHIA8LOCATION)/include
 LIBRARIES  += -L$(PYTHIA8LOCATION)/lib -lpythia8
-LIBRARIES += -L/usr/local/Cellar/gsl/2.5/lib -lgsl -lgslcblas
-
-INCLUDE += -I/usr/local/Cellar/gsl/2.5/include
-
 
 INCLUDE += `root-config --cflags`
 LIBRARIES  += `root-config --glibs`
@@ -79,7 +75,7 @@ runtest: runtest.o  $(COMMONOBJ)
 
 
 make:
-	scripts/mkcxx.pl '-f' '-s' '-1' '-r' '-8' '-IPU14' '-l' '-LPU14 -lPU14 -lz'
+	scripts/mkcxx.pl '-f' '-1' '-r' '-8' '-IPU14' '-l' '-LPU14 -lPU14 -lz'
 
 clean:
 	rm -vf $(COMMONOBJ) $(PROGOBJ)
