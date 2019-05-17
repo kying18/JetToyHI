@@ -16,7 +16,7 @@ echo should_transfer_files = NO          >> $SubmitFile
 echo +JobFlavour = \"workday\"           >> $SubmitFile
 echo                                     >> $SubmitFile
 
-for file in `ls $SampleBase | grep ^pp`
+for file in `ls $SampleBase |  grep wRecoil`
 do
    echo $file
 

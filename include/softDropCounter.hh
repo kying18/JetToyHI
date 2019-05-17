@@ -37,6 +37,8 @@ public :
    void setR0(double r) ;
    void setRCut(double r);
    void setInputJets(const std::vector<fastjet::PseudoJet> &v);
+   std::vector<std::vector<double>> GetZGs() {return zgs_;}
+   std::vector<std::vector<double>> GetDRs() {return drs_;}
    void run(const jetCollection &c);
    void run(const std::vector<fastjet::PseudoJet> &v);
    void run();
