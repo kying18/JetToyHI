@@ -21,6 +21,7 @@ private:
    std::map<std::string, std::vector<fastjet::PseudoJet>> jetmap_;
    std::map<std::string, std::vector<double>> doublemap_;
    std::map<std::string, std::vector<int>> intmap_;
+   std::map<std::string, std::vector<std::vector<double>>> doubledoublemap_;
 public:
    jetCollection(const std::vector<fastjet::PseudoJet> &p);
    ~jetCollection();
@@ -28,12 +29,15 @@ public:
    std::vector<fastjet::PseudoJet> getJet() const;
    std::vector<fastjet::PseudoJet> getVectorJet(string tag) const;
    std::vector<double> getVectorDouble(string tag) const;
+   std::vector<std::vector<double>> getVectorDoubleDouble(string tag) const;
    std::vector<int> getVectorInt(string tag) const;
    void addVector(string tag, std::vector<fastjet::PseudoJet> v);
    void addVector(string tag, std::vector<double> v);
+   void addVector(string tag, std::vector<std::vector<double>> v);
    void addVector(string tag, std::vector<int> v);
    std::vector<std::string> getListOfKeysJet() const;
    std::vector<std::string> getListOfKeysDouble() const;
+   std::vector<std::string> getListOfKeysDoubleDouble() const;
    std::vector<std::string> getListOfKeysInt() const;
 };
 
@@ -70,6 +74,13 @@ std::vector<double> jetCollection::getVectorDouble(string tag) const
    return doublemap_.at(tag);
 }
 
+std::vector<std::vector<double>> jetCollection::getVectorDoubleDouble(string tag) const
+{
+   if(doubledoublemap_.find(tag) == doubledoublemap_.end())
+      return std::vector<std::vector<double>>();
+   return doubledoublemap_.at(tag);
+}
+
 std::vector<int> jetCollection::getVectorInt(string tag) const
 {
    if(intmap_.find(tag) == intmap_.end())
@@ -98,6 +109,13 @@ void jetCollection::addVector(string tag, std::vector<double> v)
    doublemap_[tag] = v;
 }
 
+void jetCollection::addVector(string tag, std::vector<std::vector<double>> v)
+{
+   if(doubledoublemap_.find(tag) != doubledoublemap_.end())
+      doubledoublemap_.erase(tag);
+   doubledoublemap_[tag] = v;
+}
+
 std::vector<std::string> jetCollection::getListOfKeysJet() const
 {
    std::vector<std::string> Result;
@@ -110,6 +128,14 @@ std::vector<std::string> jetCollection::getListOfKeysDouble() const
 {
    std::vector<std::string> Result;
    for(auto iter = doublemap_.begin(); iter != doublemap_.end(); iter++)
+      Result.push_back(iter->first);
+   return Result;
+}
+
+std::vector<std::string> jetCollection::getListOfKeysDoubleDouble() const
+{
+   std::vector<std::string> Result;
+   for(auto iter = doubledoublemap_.begin(); iter != doubledoublemap_.end(); iter++)
       Result.push_back(iter->first);
    return Result;
 }

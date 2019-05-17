@@ -6,6 +6,9 @@ Messenger.o: Messenger.cpp Messenger.h
 Execute: ExampleYi.cpp Messenger.o
 	g++ `root-config --cflags --libs` ExampleYi.cpp -o Execute Messenger.o
 
+PlotLund: PlotLund.cpp
+	g++ `root-config --cflags --libs` PlotLund.cpp -o PlotLund
+
 TestRun: Execute
 	./Execute
 	cp Plots.pdf ~/public/html/
