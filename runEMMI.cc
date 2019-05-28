@@ -361,16 +361,16 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
    vector<vector<double>> JConstituentEta;
    vector<vector<double>> JConstituentPhi;
    vector<vector<double>> JConstituentMass;
-   vector<vector<int>> JConstituentPDG;
-   vector<vector<int>> JConstituentIsHadron;
+   vector<vector<double>> JConstituentPDG;
+   vector<vector<double>> JConstituentIsHadron;
 
    vector<int> JCSDonstituents;
    vector<vector<double>> JCSDonstituentPt;
    vector<vector<double>> JCSDonstituentEta;
    vector<vector<double>> JCSDonstituentPhi;
    vector<vector<double>> JCSDonstituentMass;
-   vector<vector<int>> JCSDonstituentPDG;
-   vector<vector<int>> JCSDonstituentIsHadron;
+   vector<vector<double>> JCSDonstituentPDG;
+   vector<vector<double>> JCSDonstituentIsHadron;
 
    int counter=0;  
    for(auto J : JC.getJet())
@@ -380,12 +380,12 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
       vector<double> JCEta;
       vector<double> JCPhi;
       vector<double> JCMass;
-      vector<int> JCPDG;
-      vector<int> JCIsHadron;
+      vector<double> JCPDG;
+      vector<double> JCIsHadron;
       for(int i = 0; i < (int)J.constituents().size(); i++)
       {
          const int &ID = J.constituents()[i].user_info<PU14>().pdg_id();
-         JCPDG.push_back(ID);
+         JCPDG.push_back((double)ID);
          JCIsHadron.push_back(HepPID::isHadron(ID));
 	 JCPt.push_back(J.constituents()[i].pt());
 	 JCEta.push_back(J.constituents()[i].eta());
@@ -404,12 +404,12 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
       vector<double> JCSDEta;
       vector<double> JCSDPhi;
       vector<double> JCSDMass;
-      vector<int> JCSDPDG;
-      vector<int> JCSDIsHadron;
+      vector<double> JCSDPDG;
+      vector<double> JCSDIsHadron;
       for(int i = 0; i < (int)SD.getConstituents()[counter].size(); i++)
       {
          const int &ID = SD.getConstituents()[counter][i].user_info<PU14>().pdg_id();
-         JCSDPDG.push_back(ID);
+         JCSDPDG.push_back((double)ID);
          JCSDIsHadron.push_back(HepPID::isHadron(ID));
 	 JCSDPt.push_back(SD.getConstituents()[counter][i].pt());
 	 JCSDEta.push_back(SD.getConstituents()[counter][i].eta());
@@ -434,7 +434,6 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
    JC.addVector(Tag + "ConstituentPdg_id", JConstituentPDG);
    JC.addVector(Tag + "ConstituentIsHadron", JConstituentIsHadron);
      
-
    JCSD.addVector(Tag +"SD"+ "NConstituent", JCSDonstituents);
    JCSD.addVector(Tag +"SD"+ "ConstituentPt", JCSDonstituentPt);
    JCSD.addVector(Tag +"SD"+ "ConstituentEta", JCSDonstituentEta);
