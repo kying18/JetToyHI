@@ -342,9 +342,10 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
    JCSDJewel.addVector(Tag + "SDJewelSubjet2", CalculateSubjet2(SDJewel));
 
    vector<PseudoJet> SJ1, SJ2;
+      
    for(auto J : JC.getJet())
    {
-      ClusterSequence SJCluster(J.constituents(), SubjetDefinition);
+      ClusterSequence SJCluster(J.constituents(), SubjetDefinition);  
       vector<PseudoJet> SJ = sorted_by_pt(SJCluster.inclusive_jets(2));
       if(SJ.size() > 0)   SJ1.push_back(SJ[0]);
       else                SJ1.push_back(PseudoJet(0, 0, 0, 0));
@@ -353,6 +354,95 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
    }
    JC.addVector(Tag + "SJ1", SJ1);
    JC.addVector(Tag + "SJ2", SJ2);
+
+   // Write constituents for ungroomed jets
+   vector<int> JConstituents;
+   vector<vector<double>> JConstituentPt;
+   vector<vector<double>> JConstituentEta;
+   vector<vector<double>> JConstituentPhi;
+   vector<vector<double>> JConstituentMass;
+   vector<vector<int>> JConstituentPDG;
+   vector<vector<int>> JConstituentIsHadron;
+
+   vector<int> JCSDonstituents;
+   vector<vector<double>> JCSDonstituentPt;
+   vector<vector<double>> JCSDonstituentEta;
+   vector<vector<double>> JCSDonstituentPhi;
+   vector<vector<double>> JCSDonstituentMass;
+   vector<vector<int>> JCSDonstituentPDG;
+   vector<vector<int>> JCSDonstituentIsHadron;
+
+   int counter=0;  
+   for(auto J : JC.getJet())
+   {
+      JConstituents.push_back(J.constituents().size());
+      vector<double> JCPt;
+      vector<double> JCEta;
+      vector<double> JCPhi;
+      vector<double> JCMass;
+      vector<int> JCPDG;
+      vector<int> JCIsHadron;
+      for(int i = 0; i < (int)J.constituents().size(); i++)
+      {
+         const int &ID = J.constituents()[i].user_info<PU14>().pdg_id();
+         JCPDG.push_back(ID);
+         JCIsHadron.push_back(HepPID::isHadron(ID));
+	 JCPt.push_back(J.constituents()[i].pt());
+	 JCEta.push_back(J.constituents()[i].eta());
+	 JCPhi.push_back(J.constituents()[i].phi());
+	 JCMass.push_back(J.constituents()[i].m());
+      }
+      JConstituentPt.push_back(JCPt);
+      JConstituentEta.push_back(JCEta);
+      JConstituentPhi.push_back(JCPhi);
+      JConstituentMass.push_back(JCMass);
+      JConstituentPDG.push_back(JCPDG);
+      JConstituentIsHadron.push_back(JCIsHadron);
+      
+      JCSDonstituents.push_back(SD.getConstituents()[counter].size());
+      vector<double> JCSDPt;
+      vector<double> JCSDEta;
+      vector<double> JCSDPhi;
+      vector<double> JCSDMass;
+      vector<int> JCSDPDG;
+      vector<int> JCSDIsHadron;
+      for(int i = 0; i < (int)SD.getConstituents()[counter].size(); i++)
+      {
+         const int &ID = SD.getConstituents()[counter][i].user_info<PU14>().pdg_id();
+         JCSDPDG.push_back(ID);
+         JCSDIsHadron.push_back(HepPID::isHadron(ID));
+	 JCSDPt.push_back(SD.getConstituents()[counter][i].pt());
+	 JCSDEta.push_back(SD.getConstituents()[counter][i].eta());
+	 JCSDPhi.push_back(SD.getConstituents()[counter][i].phi());
+	 JCSDMass.push_back(SD.getConstituents()[counter][i].m());
+      }
+      JCSDonstituentPt.push_back(JCSDPt);
+      JCSDonstituentEta.push_back(JCSDEta);
+      JCSDonstituentPhi.push_back(JCSDPhi);
+      JCSDonstituentMass.push_back(JCSDMass);
+      JCSDonstituentPDG.push_back(JCSDPDG);
+      JCSDonstituentIsHadron.push_back(JCSDIsHadron);
+      counter++;
+      
+   }
+
+   JC.addVector(Tag + "NConstituent", JConstituents);
+   JC.addVector(Tag + "ConstituentPt", JConstituentPt);
+   JC.addVector(Tag + "ConstituentEta", JConstituentEta);
+   JC.addVector(Tag + "ConstituentPhi", JConstituentPhi);
+   JC.addVector(Tag + "ConstituentMass", JConstituentMass);
+   JC.addVector(Tag + "ConstituentPdg_id", JConstituentPDG);
+   JC.addVector(Tag + "ConstituentIsHadron", JConstituentIsHadron);
+     
+
+   JCSD.addVector(Tag +"SD"+ "NConstituent", JCSDonstituents);
+   JCSD.addVector(Tag +"SD"+ "ConstituentPt", JCSDonstituentPt);
+   JCSD.addVector(Tag +"SD"+ "ConstituentEta", JCSDonstituentEta);
+   JCSD.addVector(Tag +"SD"+ "ConstituentPhi", JCSDonstituentPhi);
+   JCSD.addVector(Tag +"SD"+ "ConstituentMass", JCSDonstituentMass);
+   JCSD.addVector(Tag +"SD"+ "ConstituentPdg_id", JCSDonstituentPDG);
+   JCSD.addVector(Tag +"SD"+ "ConstituentIsHadron", JCSDonstituentIsHadron);
+
 
    vector<PseudoJet> WTAAxis;
    for(auto J : JC.getJet())
