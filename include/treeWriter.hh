@@ -32,6 +32,7 @@ private :
   std::map<std::string,std::vector<int>  > intMaps_;
   std::map<std::string,std::vector<double>  > doubleMaps_;
   std::map<std::string,std::vector<std::vector<double>>> doubleVectorMaps_;
+  std::map<std::string,std::vector<std::vector<int>>> intVectorMaps_;
 
 public :
   treeWriter(const char *treeName = "treeOut");
@@ -53,7 +54,9 @@ public :
   void bookBranchBoolVec(std::string name);
 
   void addDoubleVectorCollection(std::string name, const std::vector<std::vector<double>> v);
+  void addIntVectorCollection(std::string name, const std::vector<std::vector<int>> v);
   void bookBranchDoubleVectorVec(std::string name);
+  void bookBranchIntVectorVec(std::string name);
 
 };
 
@@ -120,6 +123,10 @@ void treeWriter::addJetCollection(std::string name, const jetCollection &c, bool
   std::vector<std::string> doubledoubleKeys = c.getListOfKeysDoubleDouble();
   for(std::string tag: doubledoubleKeys)
      addDoubleVectorCollection(tag, c.getVectorDoubleDouble(tag));
+
+  std::vector<std::string> intintKeys = c.getListOfKeysIntInt();
+  for(std::string tag: intintKeys)
+     addIntVectorCollection(tag, c.getVectorIntInt(tag));
 
   std::vector<std::string> intKeys = c.getListOfKeysInt();
   for(std::string tag: intKeys)
@@ -247,10 +254,23 @@ void treeWriter::addDoubleVectorCollection(std::string name, const std::vector<s
   bookBranchDoubleVectorVec(name);
 }
 
+void treeWriter::addIntVectorCollection(std::string name, const std::vector<std::vector<int> > v)
+{
+  intVectorMaps_[name] = v;
+  bookBranchIntVectorVec(name);
+}
+
+
 void treeWriter::bookBranchDoubleVectorVec(std::string name)
 {
   if(!treeOut_->GetBranch(name.c_str()))
     treeOut_->Branch(name.c_str(), &doubleVectorMaps_[name]);
+}
+
+void treeWriter::bookBranchIntVectorVec(std::string name)
+{
+  if(!treeOut_->GetBranch(name.c_str()))
+    treeOut_->Branch(name.c_str(), &intVectorMaps_[name]);
 }
 
 
