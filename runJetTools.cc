@@ -40,7 +40,7 @@ using namespace fastjet;
 // ./runJewelSub -hard  /eos/project/j/jetquenching/JetWorkshop2017/samples/jewel/DiJet/RecoilOn_0_10/Jewel_0_T_0.pu14 -pileup XXXXX -nev 10
 
 int main(int argc, char *argv[]);
-bool CompareJet(PseudoJet &J1, PseudoJet &J2);
+bool CompareJet(const PseudoJet &J1, const PseudoJet &J2);
 void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
    JetDefinition &SubjetDefinition, JetDefinition &WTADefinition, double R,
    vector<PseudoJet> &Particles, vector<PseudoJet> &Dummy,
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
    cout << "Execution time: " << time_in_seconds << " seconds" << endl;
 }
 
-bool CompareJet(PseudoJet &J1, PseudoJet &J2)
+bool CompareJet(const PseudoJet &J1, const PseudoJet &J2)
 { 
    return (J1.perp() > J2.perp());
 } 
