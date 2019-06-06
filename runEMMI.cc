@@ -26,6 +26,7 @@
 #include "include/randomCones.hh"
 #include "include/Angularity.hh"
 #include "include/jewelMatcher.hh"
+#include "include/SmearRandomKick.hh"
 
 // Observables
 //    1. Leading hadrons and photons
@@ -55,6 +56,9 @@ int main(int argc, char *argv[])
 
    int EventCount = cmdline.value<int>("-nev", 1);
    //bool verbose = cmdline.present("-verbose");
+
+
+   double kick = cmdline.value<double>("-kick", 0);
 
    cout << "will run on " << EventCount << " events" << endl;
 
@@ -104,8 +108,9 @@ int main(int argc, char *argv[])
       Bar.Update(iEvent);
       Bar.PrintWithMod(EntryDiv);
 
-      vector<PseudoJet> ParticlesMerged = mixer.particles();
-
+      vector<PseudoJet> ParticlesMergedPreKick = mixer.particles();
+      vector<PseudoJet> ParticlesMerged = SmearRandomKick(ParticlesMergedPreKick,kick);
+      
       vector<double> EventWeight;
       EventWeight.push_back(mixer.hard_weight());
       EventWeight.push_back(mixer.pu_weight());
