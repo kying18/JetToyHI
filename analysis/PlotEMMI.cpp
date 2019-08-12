@@ -96,14 +96,14 @@ int main(int argc, char *argv[])
       vector<vector<double>> *SDAllConstituentM = nullptr;
       vector<vector<double>> *SDAllConstituentIsHadron = nullptr;
 
-      Tree->SetBranchAddress("SignalJet04Pt", &SignalJetPt);
-      Tree->SetBranchAddress("SignalJet04SDPt", &SignalJetSDPt);
-      Tree->SetBranchAddress("SignalJet04Eta", &SignalJetEta);
-      Tree->SetBranchAddress("SignalJet04Phi", &SignalJetPhi);
-      Tree->SetBranchAddress("AllJet04Pt", &AllJetPt);
-      Tree->SetBranchAddress("AllJet04SDPt", &AllJetSDPt);
-      Tree->SetBranchAddress("AllJet04Eta", &AllJetEta);
-      Tree->SetBranchAddress("AllJet04Phi", &AllJetPhi);
+      Tree->SetBranchAddress("SignalJet04JewelPt", &SignalJetPt);
+      Tree->SetBranchAddress("SignalJet04SDJewelPt", &SignalJetSDPt);
+      Tree->SetBranchAddress("SignalJet04JewelEta", &SignalJetEta);
+      Tree->SetBranchAddress("SignalJet04JewelPhi", &SignalJetPhi);
+      Tree->SetBranchAddress("AllJet04JewelPt", &AllJetPt);
+      Tree->SetBranchAddress("AllJet04SDJewelPt", &AllJetSDPt);
+      Tree->SetBranchAddress("AllJet04JewelEta", &AllJetEta);
+      Tree->SetBranchAddress("AllJet04JewelPhi", &AllJetPhi);
       Tree->SetBranchAddress("ParticlesPt", &ParticlesPt);
       Tree->SetBranchAddress("ParticlesEta", &ParticlesEta);
       Tree->SetBranchAddress("ParticlesPhi", &ParticlesPhi);
