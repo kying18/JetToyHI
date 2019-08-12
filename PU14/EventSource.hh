@@ -7,6 +7,7 @@
 #include <memory>
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/SharedPtr.hh"
+#include "PU14.hh"
 
 class EventHepMC3
 {
@@ -58,6 +59,19 @@ public:
    }
    void CopyParticles(std::vector<fastjet::PseudoJet> & particles, double &event_weight)
    {
+      event_weight = W;
+      particles.clear();
+      for(int i = 0; i < E[2]; i++)
+      {
+         int vertex = 0;
+         if(P[8][i] < 3.1 && P[8][i] > 2.9)   // 3
+            vertex = -1;
+
+         fastjet::PseudoJet particle = fastjet::PseudoJet(P[3][i], P[4][i], P[5][i], P[6][i]);
+         particle.set_user_info(new PU14(P[2][i], i, vertex));
+         particles.push_back(particle);
+      }
+      EventCount = EventCount + 1;
    }
 };
 
@@ -95,6 +109,19 @@ public:
    }
    void CopyParticles(std::vector<fastjet::PseudoJet> & particles, double &event_weight)
    {
+      event_weight = EWeight;
+      particles.clear();
+      for(int i = 0; i < PCount; i++)
+      {
+         int vertex = 0;
+         if(P[7][i] < 3.1 && P[7][i] > 2.9)   // 3
+            vertex = -1;
+
+         fastjet::PseudoJet particle = fastjet::PseudoJet(P[2][i], P[3][i], P[4][i], P[5][i]);
+         particle.set_user_info(new PU14(P[1][i], i, vertex));
+         particles.push_back(particle);
+      }
+      EventCount = EventCount + 1;
    }
 };
 
@@ -104,9 +131,9 @@ public:
 /// Class for reading events from a file (or stdin) in some simple format
 class EventSource
 {
-public:
+   public:
 
-   enum FileType {Pu14, HepMC2, HepMC3, Unknown};
+      enum FileType {Pu14, HepMC2, HepMC3, Unknown};
 
    EventSource(const std::string & filename, const std::string &type) {
       open_stream(filename);
