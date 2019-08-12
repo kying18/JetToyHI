@@ -56,6 +56,9 @@ public:
       AProcessID = 0;
       AProcessVertex = 0;
    }
+   void CopyParticles(std::vector<fastjet::PseudoJet> & particles, double &event_weight)
+   {
+   }
 };
 
 class EventHepMC2
@@ -89,6 +92,9 @@ public:
       for(int i = 0; i < 12; i++)
          for(int j = 0; j < 10000; j++)
             P[i][j] = 0;
+   }
+   void CopyParticles(std::vector<fastjet::PseudoJet> & particles, double &event_weight)
+   {
    }
 };
 

@@ -106,6 +106,103 @@ bool EventSource::append_next_event_pu14(std::vector<fastjet::PseudoJet> & parti
 bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & particles,
       double &event_weight, int vertex_number)
 {
+   EventHepMC3 &E = Event3;
+
+   static bool BeforeFirstEvent = true;
+   static string EventString = "";
+   string line;
+
+   int PCount = 0;
+   int VCount = 0;
+
+   while(getline(*_stream, line))
+   {
+      if(line.length() == 0 || line[0] == '#')
+         continue;
+
+      stringstream str(line);
+      string Type;
+      str >> Type;
+
+      if(Type == "E")
+      {
+         if(BeforeFirstEvent == true)
+         {
+            BeforeFirstEvent = false;
+            EventString = line;
+            continue;
+         }
+
+         str.clear();
+         str.str(EventString);
+
+         string Dummy = "";
+         str >> Dummy;   // should be "E"
+
+         for(int i = 0; i < 3; i++)
+            str >> E.E[i];
+         if(E.E[1] >= 100000)   E.E[1] = 100000;
+         if(E.E[2] >= 100000)   E.E[2] = 100000;
+
+         str >> Dummy;
+
+         if(Dummy == "@")
+            for(int i = 0; i < 4; i++)
+               str >> E.ELocation[i];
+         
+         E.CopyParticles(particles, event_weight);
+         EventString = line;
+
+         E.Clean();
+         PCount = 0;
+         VCount = 0;
+
+         break;
+      }
+      if(Type == "W")
+      {
+         double Weight = -1;
+         str >> Weight;
+         if(Weight > 0)
+            E.W = Weight;
+         else
+            E.W = 1;
+      }
+      if(Type == "A")
+      {
+         string AType;
+         str >> AType >> AType;
+
+         if(AType == "GenHeavyIon")             for(int i = 0; i < 14; i++) str >> E.AHeavyIon[i];
+         if(AType == "signal_process_vertex")   str >> E.AProcessVertex;
+         if(AType == "signal_process_id")       str >> E.AProcessID;
+         if(AType == "event_scale")             str >> E.AEventScale;
+      }
+      if(Type == "V")
+      {
+         str >> E.V[0][VCount] >> E.V[1][VCount];
+
+         // Do something here later if needed
+         string ParticleIn = "";
+         str >> ParticleIn;
+
+         string Dummy = "";
+         str >> Dummy;
+         if(Dummy == "@")
+            str >> E.V[2][VCount] >> E.V[3][VCount] >> E.V[4][VCount] >> E.V[5][VCount];
+
+         VCount = VCount + 1;
+      }
+      if(Type == "P")
+      {
+         for(int i = 0; i < 9; i++)
+            str >> E.P[i][PCount];
+         PCount = PCount + 1;
+      }
+   }
+
+   // TODO: Get last event
+
    return false;
 }
 
@@ -114,6 +211,78 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
 bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & particles,
       double &event_weight, int vertex_number)
 {
+   EventHepMC2 &E = Event2;
+
+   static bool BeforeFirstEvent = true;
+   static string EventString = "";
+   string line;
+
+   while(getline(*_stream, line))
+   {
+      if(line.length() == 0 || line[0] == '#')
+         continue;
+
+      stringstream str(line);
+      string Type;
+      str >> Type;
+
+      if(Type == "E")
+      {
+         if(BeforeFirstEvent == true)
+         {
+            BeforeFirstEvent = false;
+            EventString = line;
+            continue;
+         }
+
+         str.clear();
+         str.str(EventString);
+
+         string Dummy = "";
+         str >> Dummy;   // should be "E"
+         
+         for(int i = 0; i < 10; i++)
+            str >> E.E[i];
+
+         str >> E.E[10];
+         if(E.E[10] != 0)
+            for(int i = 0; i < E.E[10]; i++)
+               str >> E.ERand;
+         str >> E.E[11];
+         if(E.E[11] != 0)
+         {
+            E.EWeight = 1;
+            double Weight = 1;
+            for(int i = 0; i < E.E[11]; i++)
+            {
+               str >> Weight;
+               E.EWeight = E.EWeight * Weight;
+            }
+         }
+         else
+            E.EWeight = 1;
+         
+         E.CopyParticles(particles, event_weight);
+         EventString = line;
+
+         E.Clean();
+      }
+      if(Type == "N")   for(int i = 0; i < 2; i++)    str >> E.N[i];
+      if(Type == "U")   for(int i = 0; i < 2; i++)    str >> E.U[i];
+      if(Type == "C")   for(int i = 0; i < 2; i++)    str >> E.C[i];
+      if(Type == "H")   for(int i = 0; i < 13; i++)   str >> E.H[i];
+      if(Type == "F")   for(int i = 0; i < 9; i++)    str >> E.F[i];
+      if(Type == "V")   for(int i = 0; i < 9; i++)    str >> E.V[i];
+      if(Type == "P")
+      {
+         for(int i = 0; i < 12; i++)
+            str >> E.P[i][E.PCount];
+         E.PCount = E.PCount + 1;
+      }
+   }
+
+   // TODO: Get last event
+   
    return false;
 }
 
