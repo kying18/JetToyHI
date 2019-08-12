@@ -8,8 +8,10 @@ using namespace std;
 //----------------------------------------------------------------------
 EventMixer::EventMixer(CmdLine * cmdline) : _cmdline(cmdline) {
 
-  _hard_name = _cmdline->value<string>("-hard");
+  _hard_name   = _cmdline->value<string>("-hard");
   _pileup_name = _cmdline->value<string>("-pileup", "");
+  _hard_type   = _cmdline->value<string>("-hardtype", "PU14");
+  _pileup_type = _cmdline->value<string>("-pileuptype", "PU14");
 
   // setting the multiplicity of pileup events (background HI)
   //
@@ -31,14 +33,14 @@ EventMixer::EventMixer(CmdLine * cmdline) : _cmdline(cmdline) {
     set_chs_rescaling_factor(1.0); // this effectively turns off CHS
   }
 
-  _hard  .reset(new EventSource(_hard_name  ));
+  _hard  .reset(new EventSource(_hard_name  , _hard_type));
 
   if (_pileup_name.empty()){
     cerr << "INFO: no background requested" << endl;
     _pileup.reset();
     _npu=0;
   } else {
-    _pileup.reset(new EventSource(_pileup_name));
+    _pileup.reset(new EventSource(_pileup_name, _pileup_type));
   }
 }
 
