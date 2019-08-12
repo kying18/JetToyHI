@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
    PdfFileHelper PdfFile(OutputBase + ".pdf");
    PdfFile.AddTextPage("Lund Plane");
 
+   TH1D HJetRawPT("HJetRawPT", "Jet PT (no subtraction)", 100, 0, 500);
    TH1D HJetPT("HJetPT", "Jet PT", 100, 0, 500);
    TH2D HLundCA("HLundCA", ";-ln(#theta);ln(z#theta)", 100, 0, 5, 100, -10, 0);
    TH2D HLundAK("HLundAK", ";-ln(#theta);ln(z#theta)", 100, 0, 5, 100, -10, 0);
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
          continue;
       }
 
+      vector<double> *SignalJetRawPt = nullptr;
       vector<double> *SignalJetPt = nullptr;
       vector<double> *SignalJetEta = nullptr;
       vector<double> *SignalJetPhi = nullptr;
@@ -45,7 +47,8 @@ int main(int argc, char *argv[])
       vector<vector<double>> *SignalJetKTZGs = nullptr;
       vector<vector<double>> *SignalJetKTDRs = nullptr;
 
-      Tree->SetBranchAddress("SignalJetPt", &SignalJetPt);
+      Tree->SetBranchAddress("SignalJetPt", &SignalJetRawPt);
+      Tree->SetBranchAddress("SignalJetJewelPt", &SignalJetPt);
       Tree->SetBranchAddress("SignalJetEta", &SignalJetEta);
       Tree->SetBranchAddress("SignalJetPhi", &SignalJetPhi);
       Tree->SetBranchAddress("SignalJetCAZGs", &SignalJetCAZGs);
@@ -67,6 +70,7 @@ int main(int argc, char *argv[])
          int NJet = SignalJetPt->size();
          for(int iJ = 0; iJ < NJet; iJ++)
          {
+            HJetRawPT.Fill((*SignalJetRawPt)[iJ]);
             HJetPT.Fill((*SignalJetPt)[iJ]);
 
             if((*SignalJetEta)[iJ] < -2 || (*SignalJetEta)[iJ] > 2)
@@ -98,6 +102,7 @@ int main(int argc, char *argv[])
       File.Close();
    }
 
+   PdfFile.AddPlot(HJetRawPT, "", true);
    PdfFile.AddPlot(HJetPT, "", true);
    PdfFile.AddPlot(HLundCA, "colz");
    PdfFile.AddPlot(HLundAK, "colz");

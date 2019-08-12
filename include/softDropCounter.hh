@@ -28,6 +28,7 @@ private :
    int    algorithm_;   // what algorithm to use
 
    std::vector<fastjet::PseudoJet> fjInputs_;     // ungroomed jets
+   std::vector<fastjet::PseudoJet> dummy_;
    std::vector<std::vector<double>> zgs_;         // all the zg's in the algorithm
    std::vector<std::vector<double>> drs_;         // and the angles in the algorithm
 
@@ -41,7 +42,7 @@ public :
    void setInputJets(const std::vector<fastjet::PseudoJet> &v);
    std::vector<std::vector<double>> GetZGs() {return zgs_;}
    std::vector<std::vector<double>> GetDRs() {return drs_;}
-   void run(const jetCollection &c);
+   void run(const jetCollection &c, const std::vector<fastjet::PseudoJet> &dummy);
    void run(const std::vector<fastjet::PseudoJet> &v);
    void run();
    std::vector<double> calculateNSD(double Kappa, double AngleKappa = 0);
@@ -82,8 +83,9 @@ void softDropCounter::setInputJets(const std::vector<fastjet::PseudoJet> &v)
    fjInputs_ = v;
 }
 
-void softDropCounter::run(const jetCollection &c)
+void softDropCounter::run(const jetCollection &c, const std::vector<fastjet::PseudoJet> &dummy)
 {
+   dummy_ = dummy;
    run(c.getJet());
 }
 
@@ -143,6 +145,15 @@ void softDropCounter::run()
 
          double PT1 = Part1.pt();
          double PT2 = Part2.pt();
+         
+         if(dummy_.size() > 0)
+         {
+            fastjet::PseudoJet sj1 = GetCorrectedJet(Part1, dummy_);
+            fastjet::PseudoJet sj2 = GetCorrectedJet(Part2, dummy_);
+            PT1 = sj1.pt();
+            PT2 = sj2.pt();
+         }
+
          double zg = -1;
 
          if(PT1 + PT2 > 0)

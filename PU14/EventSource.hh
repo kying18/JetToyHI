@@ -63,9 +63,15 @@ public:
       particles.clear();
       for(int i = 0; i < E[2]; i++)
       {
+         bool Tag = false;
+
          int vertex = 999;
          if(P[8][i] < 3.1 && P[8][i] > 2.9)   // 3
             vertex = -1;
+         if(P[8][i] < 7.1 && P[8][i] > 6.9)   // 7 - hybrid negative wake
+            vertex = -1, Tag = true;
+         if(P[8][i] < 6.1 && P[8][i] > 5.9)   // 6 - hybrid positive wake
+            vertex = 0;
          if(P[8][i] < 1.1 && P[8][i] > 0.9)   // 1
             vertex = 0;
          if(P[8][i] < 4.1 && P[8][i] > 3.9)   // 4
@@ -79,6 +85,13 @@ public:
          if(particle.perp() < 1e-5 && fabs(particle.pz()) > 2000)
             continue;
          particles.push_back(particle);
+
+         if(Tag == true)
+         {
+            fastjet::PseudoJet particle2 = fastjet::PseudoJet(P[3][i] * 1e-10, P[4][i] * 1e-10, P[5][i] * 1e-10, P[6][i] * 1e-10);
+            particle2.set_user_info(new PU14(P[2][i], i, 0));
+            particles.push_back(particle2);
+         }
       }
       EventCount = EventCount + 1;
    }
@@ -122,12 +135,18 @@ public:
       particles.clear();
       for(int i = 0; i < PCount; i++)
       {
+         bool Tag = false;
+
          int vertex = 999;
          if(P[7][i] < 3.1 && P[7][i] > 2.9)   // 3
             vertex = -1;
          if(P[7][i] < 1.1 && P[7][i] > 0.9)   // 1
             vertex = 0;
          if(P[7][i] < 4.1 && P[7][i] > 3.9)   // 4
+            vertex = 0;
+         if(P[7][i] < 7.1 && P[7][i] > 6.9)   // 7 - hybrid negative wake
+            vertex = -1, Tag = true;
+         if(P[7][i] < 6.1 && P[7][i] > 5.9)   // 6 - hybrid positive wake
             vertex = 0;
          if(vertex == 999)
             continue;
@@ -138,6 +157,13 @@ public:
          if(particle.perp() < 1e-5 && fabs(particle.pz()) > 2000)
             continue;
          particles.push_back(particle);
+
+         if(Tag == true)
+         {
+            fastjet::PseudoJet particle2 = fastjet::PseudoJet(P[2][i] * 1e-10, P[3][i] * 1e-10, P[4][i] * 1e-10, P[5][i] * 1e-10);
+            particle2.set_user_info(new PU14(P[1][i], i, 0));
+            particles.push_back(particle2);
+         }
       }
       EventCount = EventCount + 1;
    }

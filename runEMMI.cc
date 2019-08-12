@@ -258,29 +258,29 @@ int main(int argc, char *argv[])
       //   Jet clustering
       //---------------------------------------------------------------------------
 
-      DoJet(Writer, JetDefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet02");
+      // DoJet(Writer, JetDefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet02");
       DoJet(Writer, JetDefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet04");
-      DoJet(Writer, JetDefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet06");
-      DoJet(Writer, JetDefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet08");
-      DoJet(Writer, JetDefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet10");
+      // DoJet(Writer, JetDefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet06");
+      // DoJet(Writer, JetDefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet08");
+      // DoJet(Writer, JetDefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "SignalJet10");
       
-      DoJet(Writer, JetDefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "AllJet02");
+      // DoJet(Writer, JetDefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "AllJet02");
       DoJet(Writer, JetDefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesReal, ParticlesDummy, JetSelector, "AllJet04");
-      DoJet(Writer, JetDefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "AllJet06");
-      DoJet(Writer, JetDefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "AllJet08");
-      DoJet(Writer, JetDefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "AllJet10");
+      // DoJet(Writer, JetDefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "AllJet06");
+      // DoJet(Writer, JetDefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "AllJet08");
+      // DoJet(Writer, JetDefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "AllJet10");
 
-      DoJet(Writer, WTADefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet02");
+      // DoJet(Writer, WTADefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet02");
       DoJet(Writer, WTADefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet04");
-      DoJet(Writer, WTADefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet06");
-      DoJet(Writer, WTADefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet08");
-      DoJet(Writer, WTADefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet10");
+      // DoJet(Writer, WTADefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet06");
+      // DoJet(Writer, WTADefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet08");
+      // DoJet(Writer, WTADefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesSignal, ParticlesDummy, JetSelector, "WTASignalJet10");
       
-      DoJet(Writer, WTADefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet02");
+      // DoJet(Writer, WTADefinition02, Area, JetDefinition01, WTADefinition, 0.2, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet02");
       DoJet(Writer, WTADefinition04, Area, JetDefinition01, WTADefinition, 0.4, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet04");
-      DoJet(Writer, WTADefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet06");
-      DoJet(Writer, WTADefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet08");
-      DoJet(Writer, WTADefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet10");
+      // DoJet(Writer, WTADefinition06, Area, JetDefinition01, WTADefinition, 0.6, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet06");
+      // DoJet(Writer, WTADefinition08, Area, JetDefinition01, WTADefinition, 0.8, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet08");
+      // DoJet(Writer, WTADefinition10, Area, JetDefinition01, WTADefinition, 1.0, ParticlesReal, ParticlesDummy, JetSelector, "WTAAllJet10");
 
       //---------------------------------------------------------------------------
       //   Write tree
@@ -291,9 +291,10 @@ int main(int argc, char *argv[])
 
       Writer.addCollection("LeadingPhoton",    LeadingPhoton);
       Writer.addCollection("LeadingHadron",    LeadingHadron);
-      Writer.addCollection("Particles",	       ParticlesReal);
-      Writer.addCollection("pdg_id",	       Particle_pdg_id);
-      Writer.addCollection("isHadron",	       Particle_isHadron);
+      Writer.addCollection("Particles",	     ParticlesReal);
+      Writer.addCollection("pdg_id",	        Particle_pdg_id);
+      Writer.addCollection("isHadron",	        Particle_isHadron);
+      Writer.addCollection("Dummy", 	        ParticlesDummy);
       Writer.addCollection("EventWeight",      EventWeight);
 
       Writer.fillTree();

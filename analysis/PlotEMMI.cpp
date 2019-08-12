@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
    CommandLine CL(argc, argv);
 
-   vector<string> InputFileNames = CL.GetStringVector("input");
+   vector<string> InputFileNames = CL.GetStringVector("input", " ");
    string OutputBase = CL.Get("output");
    double MinPT = CL.GetDouble("minpt", 300);
 
@@ -23,17 +23,17 @@ int main(int argc, char *argv[])
    TH1D HJetSDPT("HJetSDPT", "Jet SD PT (Jet Signal Only)", 200, 0, 500);
    TH1D HAllJetPT("HAllJetPT", "Jet PT (Signal+Background)", 200, 0, 500);
    TH1D HAllJetSDPT("HAllJetSDPT", "Jet SD PT (Signal+Background)", 200, 0, 500);
-   TH2D HEMMI("HEMMI", "All Hadrons;ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
-   TH2D HEMMIConstituent("HEMMIConstituent", "Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
-   TH2D HEMMISDConstituent("HEMMISDConstituent", "SD Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
-   TH2D HEMMIAllConstituent("HEMMIAllConstituent", "Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
-   TH2D HEMMISDAllConstituent("HEMMISDAllConstituent", "SD Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
-   TH2D HEMMIClassic("HEMMIClassic", "All Hadrons;ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMIClassicConstituent("HEMMIClassicConstituent", "Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMIClassicSDConstituent("HEMMIClassicSDConstituent", "SD Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMIClassicAllConstituent("HEMMIClassicAllConstituent", "Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMIClassicSDAllConstituent("HEMMIClassicSDAllConstituent", "SD Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
-   
+   TH2D HEMMI("HEMMI", "All Hadrons;ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
+   TH2D HEMMIConstituent("HEMMIConstituent", "Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
+   TH2D HEMMISDConstituent("HEMMISDConstituent", "SD Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
+   TH2D HEMMIAllConstituent("HEMMIAllConstituent", "Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
+   TH2D HEMMISDAllConstituent("HEMMISDAllConstituent", "SD Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
+   TH2D HEMMIClassic("HEMMIClassic", "All Hadrons;#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicConstituent("HEMMIClassicConstituent", "Constituent Hadrons (Jet Signal Only);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicSDConstituent("HEMMIClassicSDConstituent", "SD Constituent Hadrons (Jet Signal Only);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicAllConstituent("HEMMIClassicAllConstituent", "Constituent Hadrons (Signal+Background);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicSDAllConstituent("HEMMIClassicSDAllConstituent", "SD Constituent Hadrons (Signal+Background);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
+
    HEMMI.SetStats(0);
    HEMMIConstituent.SetStats(0);
    HEMMISDConstituent.SetStats(0);
@@ -47,8 +47,9 @@ int main(int argc, char *argv[])
 
    for(string FileName : InputFileNames)
    {
+      cout <<InputFileNames.size()<<endl;
       TFile File(FileName.c_str());
-
+      cout <<FileName.c_str()<<endl;
       TTree *Tree = (TTree *)File.Get("JetTree");
 
       if(Tree == nullptr)
@@ -69,6 +70,10 @@ int main(int argc, char *argv[])
       vector<double> *ParticlesEta = nullptr;
       vector<double> *ParticlesPhi = nullptr;
       vector<double> *ParticlesM = nullptr;
+      vector<double> *DummyPt = nullptr;
+      vector<double> *DummyEta = nullptr;
+      vector<double> *DummyPhi = nullptr;
+      vector<double> *DummyM = nullptr;
       vector<bool> *isHadron = nullptr;
       vector<vector<double>> *ConstituentPt = nullptr;
       vector<vector<double>> *ConstituentEta = nullptr;
@@ -103,6 +108,10 @@ int main(int argc, char *argv[])
       Tree->SetBranchAddress("ParticlesEta", &ParticlesEta);
       Tree->SetBranchAddress("ParticlesPhi", &ParticlesPhi);
       Tree->SetBranchAddress("ParticlesM", &ParticlesM);
+      Tree->SetBranchAddress("DummyPt", &DummyPt);
+      Tree->SetBranchAddress("DummyEta", &DummyEta);
+      Tree->SetBranchAddress("DummyPhi", &DummyPhi);
+      Tree->SetBranchAddress("DummyM", &DummyM);
       Tree->SetBranchAddress("isHadron", &isHadron);
       Tree->SetBranchAddress("SignalJet04ConstituentPt", &ConstituentPt);
       Tree->SetBranchAddress("SignalJet04ConstituentEta", &ConstituentEta);
@@ -143,44 +152,90 @@ int main(int argc, char *argv[])
                continue;
             if((*SignalJetPt)[iJ] < MinPT)
                continue;
+
             TLorentzVector j;
-	    j.SetPtEtaPhiM( (*SignalJetPt)[iJ], (*SignalJetEta)[iJ], (*SignalJetPhi)[iJ], 0);
+            j.SetPtEtaPhiM( (*SignalJetPt)[iJ], (*SignalJetEta)[iJ], (*SignalJetPhi)[iJ], 0);
             for(int iS = 0; iS < (*ParticlesPt).size(); iS++)
             {
-	       if ((*isHadron)[iS]==0) continue;
-	       TLorentzVector p;
-	       p.SetPtEtaPhiM( (*ParticlesPt)[iS], (*ParticlesEta)[iS], (*ParticlesPhi)[iS], (*ParticlesM)[iS]);
+               if ((*isHadron)[iS]==0) continue;
+               TLorentzVector p;
+               p.SetPtEtaPhiM( (*ParticlesPt)[iS], (*ParticlesEta)[iS], (*ParticlesPhi)[iS], (*ParticlesM)[iS]);
+               double W = 1;
+               if((*ParticlesPt)[iS] < 1e-5)
+               {
+                  for(int iD = 0; iD < (*DummyPt).size(); iD++)
+                  {
+                     TLorentzVector d;
+                     d.SetPtEtaPhiM( (*DummyPt)[iS], (*DummyEta)[iS], (*DummyPhi)[iS], (*DummyM)[iS]);
+                     if(p.DeltaR(d) < 1e-5)
+                     {
+                        p = d;
+                        W = -1;
+                        break;
+                     }
+                  }
+               }
                double ZG = p.P()/j.P();
-	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMI.Fill(log(1./dTheta), log(ZG));
-               HEMMIClassic.Fill(dTheta, log(ZG));
+               double dTheta = fabs(j.DeltaPhi(p));
+               HEMMI.Fill(log(1./dTheta), log(ZG), W);
+               HEMMIClassic.Fill(dTheta, log(ZG), W);
             }
 
             for(int iS = 0; iS < (*ConstituentPt)[iJ].size(); iS++)
             {
-	       if ((*ConstituentIsHadron)[iJ][iS]==0) continue;
-	       TLorentzVector p;
-	       p.SetPtEtaPhiM( (*ConstituentPt)[iJ][iS], (*ConstituentEta)[iJ][iS], (*ConstituentPhi)[iJ][iS], (*ConstituentM)[iJ][iS]);
-	       double ZG = p.P()/j.P();
-	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMIConstituent.Fill(log(1./dTheta), log(ZG));
-               HEMMIClassicConstituent.Fill(dTheta, log(ZG));
+               if ((*ConstituentIsHadron)[iJ][iS]==0) continue;
+               TLorentzVector p;
+               p.SetPtEtaPhiM( (*ConstituentPt)[iJ][iS], (*ConstituentEta)[iJ][iS], (*ConstituentPhi)[iJ][iS], (*ConstituentM)[iJ][iS]);
+               double W = 1;
+               if((*ParticlesPt)[iS] < 1e-5)
+               {
+                  for(int iD = 0; iD < (*DummyPt).size(); iD++)
+                  {
+                     TLorentzVector d;
+                     d.SetPtEtaPhiM( (*DummyPt)[iS], (*DummyEta)[iS], (*DummyPhi)[iS], (*DummyM)[iS]);
+                     if(p.DeltaR(d) < 1e-5)
+                     {
+                        p = d;
+                        W = -1;
+                        break;
+                     }
+                  }
+               }
+               double ZG = p.P()/j.P();
+               double dTheta = fabs(j.DeltaPhi(p));
+               HEMMIConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMIClassicConstituent.Fill(dTheta, log(ZG), W);
             }
 
             for(int iS = 0; iS < (*SDConstituentPt)[iJ].size(); iS++)
             {
-	       if ((*SDConstituentIsHadron)[iJ][iS]==0) continue;
-	       TLorentzVector p;
-	       p.SetPtEtaPhiM( (*SDConstituentPt)[iJ][iS], (*SDConstituentEta)[iJ][iS], (*SDConstituentPhi)[iJ][iS], (*SDConstituentM)[iJ][iS]);
-	       double ZG = p.P()/j.P();
-	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMISDConstituent.Fill(log(1./dTheta), log(ZG));
-               HEMMIClassicSDConstituent.Fill(dTheta, log(ZG));
+               if ((*SDConstituentIsHadron)[iJ][iS]==0) continue;
+               TLorentzVector p;
+               p.SetPtEtaPhiM( (*SDConstituentPt)[iJ][iS], (*SDConstituentEta)[iJ][iS], (*SDConstituentPhi)[iJ][iS], (*SDConstituentM)[iJ][iS]);
+               double W = 1;
+               if((*ParticlesPt)[iS] < 1e-5)
+               {
+                  for(int iD = 0; iD < (*DummyPt).size(); iD++)
+                  {
+                     TLorentzVector d;
+                     d.SetPtEtaPhiM( (*DummyPt)[iS], (*DummyEta)[iS], (*DummyPhi)[iS], (*DummyM)[iS]);
+                     if(p.DeltaR(d) < 1e-5)
+                     {
+                        p = d;
+                        W = -1;
+                        break;
+                     }
+                  }
+               }
+               double ZG = p.P()/j.P();
+               double dTheta = fabs(j.DeltaPhi(p));
+               HEMMISDConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMIClassicSDConstituent.Fill(dTheta, log(ZG), W);
             }
-        }
-	int NAllJet = AllJetPt->size();
-        for(int iJ = 0; iJ < NAllJet; iJ++)
-	{
+         }
+         int NAllJet = AllJetPt->size();
+         for(int iJ = 0; iJ < NAllJet; iJ++)
+         {
             HAllJetPT.Fill((*AllJetPt)[iJ]);
             HAllJetSDPT.Fill((*AllJetSDPt)[iJ]);
             if((*AllJetEta)[iJ] < -2 || (*AllJetEta)[iJ] > 2)
@@ -188,28 +243,58 @@ int main(int argc, char *argv[])
             if((*AllJetPt)[iJ] < MinPT)
                continue;
             TLorentzVector j;
-	    j.SetPtEtaPhiM( (*AllJetPt)[iJ], (*AllJetEta)[iJ], (*AllJetPhi)[iJ], 0);
-         
+            j.SetPtEtaPhiM( (*AllJetPt)[iJ], (*AllJetEta)[iJ], (*AllJetPhi)[iJ], 0);
+
             for(int iS = 0; iS < (*AllConstituentPt)[iJ].size(); iS++)
             {
-	       if ((*AllConstituentIsHadron)[iJ][iS]==0) continue;
-	       TLorentzVector p;
-	       p.SetPtEtaPhiM( (*AllConstituentPt)[iJ][iS], (*AllConstituentEta)[iJ][iS], (*AllConstituentPhi)[iJ][iS], (*AllConstituentM)[iJ][iS]);
-	       double ZG = p.P()/j.P();
-	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMIAllConstituent.Fill(log(1./dTheta), log(ZG));
-               HEMMIClassicAllConstituent.Fill(dTheta, log(ZG));
+               if ((*AllConstituentIsHadron)[iJ][iS]==0) continue;
+               TLorentzVector p;
+               p.SetPtEtaPhiM( (*AllConstituentPt)[iJ][iS], (*AllConstituentEta)[iJ][iS], (*AllConstituentPhi)[iJ][iS], (*AllConstituentM)[iJ][iS]);
+               double W = 1;
+               if((*ParticlesPt)[iS] < 1e-5)
+               {
+                  for(int iD = 0; iD < (*DummyPt).size(); iD++)
+                  {
+                     TLorentzVector d;
+                     d.SetPtEtaPhiM( (*DummyPt)[iS], (*DummyEta)[iS], (*DummyPhi)[iS], (*DummyM)[iS]);
+                     if(p.DeltaR(d) < 1e-5)
+                     {
+                        p = d;
+                        W = -1;
+                        break;
+                     }
+                  }
+               }
+               double ZG = p.P()/j.P();
+               double dTheta = fabs(j.DeltaPhi(p));
+               HEMMIAllConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMIClassicAllConstituent.Fill(dTheta, log(ZG), W);
             }
 
             for(int iS = 0; iS < (*SDAllConstituentPt)[iJ].size(); iS++)
             {
-	       if ((*SDAllConstituentIsHadron)[iJ][iS]==0) continue;
-	       TLorentzVector p;
-	       p.SetPtEtaPhiM( (*SDAllConstituentPt)[iJ][iS], (*SDAllConstituentEta)[iJ][iS], (*SDAllConstituentPhi)[iJ][iS], (*SDAllConstituentM)[iJ][iS]);
-	       double ZG = p.P()/j.P();
-	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMISDAllConstituent.Fill(log(1./dTheta), log(ZG));
-               HEMMIClassicSDAllConstituent.Fill(dTheta, log(ZG));
+               if ((*SDAllConstituentIsHadron)[iJ][iS]==0) continue;
+               TLorentzVector p;
+               p.SetPtEtaPhiM( (*SDAllConstituentPt)[iJ][iS], (*SDAllConstituentEta)[iJ][iS], (*SDAllConstituentPhi)[iJ][iS], (*SDAllConstituentM)[iJ][iS]);
+               double W = 1;
+               if((*ParticlesPt)[iS] < 1e-5)
+               {
+                  for(int iD = 0; iD < (*DummyPt).size(); iD++)
+                  {
+                     TLorentzVector d;
+                     d.SetPtEtaPhiM( (*DummyPt)[iS], (*DummyEta)[iS], (*DummyPhi)[iS], (*DummyM)[iS]);
+                     if(p.DeltaR(d) < 1e-5)
+                     {
+                        p = d;
+                        W = -1;
+                        break;
+                     }
+                  }
+               }
+               double ZG = p.P()/j.P();
+               double dTheta = fabs(j.DeltaPhi(p));
+               HEMMISDAllConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMIClassicSDAllConstituent.Fill(dTheta, log(ZG), W);
             }
 
 

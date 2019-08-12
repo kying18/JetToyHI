@@ -140,9 +140,9 @@ int main(int argc, char *argv[])
       CounterCA.setAlgorithm(0);
       CounterAK.setAlgorithm(-1);
       CounterKT.setAlgorithm(1);
-      CounterCA.run(JC);
-      CounterAK.run(JC);
-      CounterKT.run(JC);
+      CounterCA.run(JC, ParticlesDummy);
+      CounterAK.run(JC, ParticlesDummy);
+      CounterKT.run(JC, ParticlesDummy);
       JC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
       JC.addVector(Tag + "CADRs", CounterCA.GetDRs());
       JC.addVector(Tag + "AKZGs", CounterAK.GetZGs());
@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
       // Only vectors of the types 'jetCollection', and 'double', 'int', 'PseudoJet' are supported
 
       Writer.addCollection(Tag + "", JC);
+      Writer.addCollection(Tag + "Jewel", JCJewel);
 
       Writer.addCollection("EventWeight",      EventWeight);
 
