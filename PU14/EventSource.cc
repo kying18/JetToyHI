@@ -115,6 +115,8 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
    int PCount = 0;
    int VCount = 0;
 
+   bool EventDone = false;
+
    while(getline(*_stream, line))
    {
       if(line.length() == 0 || line[0] == '#')
@@ -152,6 +154,7 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
          
          E.CopyParticles(particles, event_weight);
          EventString = line;
+         EventDone = true;
 
          E.Clean();
          PCount = 0;
@@ -201,9 +204,7 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
       }
    }
 
-   // TODO: Get last event
-
-   return true;
+   return EventDone;
 }
 
 
@@ -216,6 +217,8 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
    static bool BeforeFirstEvent = true;
    static string EventString = "";
    string line;
+
+   bool EventDone = false;
 
    while(getline(*_stream, line))
    {
@@ -264,6 +267,7 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
          
          E.CopyParticles(particles, event_weight);
          EventString = line;
+         EventDone = true;
 
          E.Clean();
 
@@ -283,8 +287,6 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
       }
    }
 
-   // TODO: Get last event
-   
-   return true;
+   return EventDone;
 }
 
