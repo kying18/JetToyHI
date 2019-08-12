@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
    vector<string> InputFileNames = CL.GetStringVector("input");
    string OutputBase = CL.Get("output");
-   double MinPT = CL.GetDouble("minpt", 100);
+   double MinPT = CL.GetDouble("minpt", 300);
 
    PdfFileHelper PdfFile(OutputBase + ".pdf");
    PdfFile.AddTextPage("EMMI Plane");
@@ -23,17 +23,27 @@ int main(int argc, char *argv[])
    TH1D HJetSDPT("HJetSDPT", "Jet SD PT (Jet Signal Only)", 200, 0, 500);
    TH1D HAllJetPT("HAllJetPT", "Jet PT (Signal+Background)", 200, 0, 500);
    TH1D HAllJetSDPT("HAllJetSDPT", "Jet SD PT (Signal+Background)", 200, 0, 500);
-   TH2D HEMMI("HEMMI", "All Hadrons;#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMIConstituent("HEMMIConstituent", "Constituent Hadrons (Jet Signal Only);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMISDConstituent("HEMMISDConstituent", "SD Constituent Hadrons (Jet Signal Only);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMIAllConstituent("HEMMIAllConstituent", "Constituent Hadrons (Signal+Background);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
-   TH2D HEMMISDAllConstituent("HEMMISDAllConstituent", "SD Constituent Hadrons (Signal+Background;#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMI("HEMMI", "All Hadrons;ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
+   TH2D HEMMIConstituent("HEMMIConstituent", "Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
+   TH2D HEMMISDConstituent("HEMMISDConstituent", "SD Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
+   TH2D HEMMIAllConstituent("HEMMIAllConstituent", "Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
+   TH2D HEMMISDAllConstituent("HEMMISDAllConstituent", "SD Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/0.4), log(100000), 100, -10, 0);
+   TH2D HEMMIClassic("HEMMIClassic", "All Hadrons;ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicConstituent("HEMMIClassicConstituent", "Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicSDConstituent("HEMMIClassicSDConstituent", "SD Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicAllConstituent("HEMMIClassicAllConstituent", "Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
+   TH2D HEMMIClassicSDAllConstituent("HEMMIClassicSDAllConstituent", "SD Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, 0, 1, 100, -10, 0);
    
    HEMMI.SetStats(0);
    HEMMIConstituent.SetStats(0);
    HEMMISDConstituent.SetStats(0);
    HEMMIAllConstituent.SetStats(0);
    HEMMISDAllConstituent.SetStats(0);
+   HEMMIClassic.SetStats(0);
+   HEMMIClassicConstituent.SetStats(0);
+   HEMMIClassicSDConstituent.SetStats(0);
+   HEMMIClassicAllConstituent.SetStats(0);
+   HEMMIClassicSDAllConstituent.SetStats(0);
 
    for(string FileName : InputFileNames)
    {
@@ -142,7 +152,8 @@ int main(int argc, char *argv[])
 	       p.SetPtEtaPhiM( (*ParticlesPt)[iS], (*ParticlesEta)[iS], (*ParticlesPhi)[iS], (*ParticlesM)[iS]);
                double ZG = p.P()/j.P();
 	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMI.Fill(dTheta, log(ZG));
+               HEMMI.Fill(log(1./dTheta), log(ZG));
+               HEMMIClassic.Fill(dTheta, log(ZG));
             }
 
             for(int iS = 0; iS < (*ConstituentPt)[iJ].size(); iS++)
@@ -152,7 +163,8 @@ int main(int argc, char *argv[])
 	       p.SetPtEtaPhiM( (*ConstituentPt)[iJ][iS], (*ConstituentEta)[iJ][iS], (*ConstituentPhi)[iJ][iS], (*ConstituentM)[iJ][iS]);
 	       double ZG = p.P()/j.P();
 	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMIConstituent.Fill(dTheta, log(ZG));
+               HEMMIConstituent.Fill(log(1./dTheta), log(ZG));
+               HEMMIClassicConstituent.Fill(dTheta, log(ZG));
             }
 
             for(int iS = 0; iS < (*SDConstituentPt)[iJ].size(); iS++)
@@ -162,7 +174,8 @@ int main(int argc, char *argv[])
 	       p.SetPtEtaPhiM( (*SDConstituentPt)[iJ][iS], (*SDConstituentEta)[iJ][iS], (*SDConstituentPhi)[iJ][iS], (*SDConstituentM)[iJ][iS]);
 	       double ZG = p.P()/j.P();
 	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMISDConstituent.Fill(dTheta, log(ZG));
+               HEMMISDConstituent.Fill(log(1./dTheta), log(ZG));
+               HEMMIClassicSDConstituent.Fill(dTheta, log(ZG));
             }
         }
 	int NAllJet = AllJetPt->size();
@@ -184,7 +197,8 @@ int main(int argc, char *argv[])
 	       p.SetPtEtaPhiM( (*AllConstituentPt)[iJ][iS], (*AllConstituentEta)[iJ][iS], (*AllConstituentPhi)[iJ][iS], (*AllConstituentM)[iJ][iS]);
 	       double ZG = p.P()/j.P();
 	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMIAllConstituent.Fill(dTheta, log(ZG));
+               HEMMIAllConstituent.Fill(log(1./dTheta), log(ZG));
+               HEMMIClassicAllConstituent.Fill(dTheta, log(ZG));
             }
 
             for(int iS = 0; iS < (*SDAllConstituentPt)[iJ].size(); iS++)
@@ -194,7 +208,8 @@ int main(int argc, char *argv[])
 	       p.SetPtEtaPhiM( (*SDAllConstituentPt)[iJ][iS], (*SDAllConstituentEta)[iJ][iS], (*SDAllConstituentPhi)[iJ][iS], (*SDAllConstituentM)[iJ][iS]);
 	       double ZG = p.P()/j.P();
 	       double dTheta = fabs(j.DeltaPhi(p));
-               HEMMISDAllConstituent.Fill(dTheta, log(ZG));
+               HEMMISDAllConstituent.Fill(log(1./dTheta), log(ZG));
+               HEMMIClassicSDAllConstituent.Fill(dTheta, log(ZG));
             }
 
 
@@ -213,6 +228,11 @@ int main(int argc, char *argv[])
    PdfFile.AddPlot(HEMMISDConstituent, "colz");
    PdfFile.AddPlot(HEMMIAllConstituent, "colz");
    PdfFile.AddPlot(HEMMISDAllConstituent, "colz");
+   PdfFile.AddPlot(HEMMIClassic, "colz");
+   PdfFile.AddPlot(HEMMIClassicConstituent, "colz");
+   PdfFile.AddPlot(HEMMIClassicSDConstituent, "colz");
+   PdfFile.AddPlot(HEMMIClassicAllConstituent, "colz");
+   PdfFile.AddPlot(HEMMIClassicSDAllConstituent, "colz");
 
    PdfFile.AddTimeStampPage();
    PdfFile.Close();
