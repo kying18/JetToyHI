@@ -203,7 +203,7 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
 
    // TODO: Get last event
 
-   return false;
+   return true;
 }
 
 
@@ -266,6 +266,8 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
          EventString = line;
 
          E.Clean();
+
+         break;
       }
       if(Type == "N")   for(int i = 0; i < 2; i++)    str >> E.N[i];
       if(Type == "U")   for(int i = 0; i < 2; i++)    str >> E.U[i];
@@ -283,6 +285,6 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
 
    // TODO: Get last event
    
-   return false;
+   return true;
 }
 
