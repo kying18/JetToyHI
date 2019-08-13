@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
    TH2D HLundCA("HLundCA", ";-ln(#theta);ln(z#theta)", 100, 0, 5, 100, -10, 0);
    TH2D HLundAK("HLundAK", ";-ln(#theta);ln(z#theta)", 100, 0, 5, 100, -10, 0);
    TH2D HLundKT("HLundKT", ";-ln(#theta);ln(z#theta)", 100, 0, 5, 100, -10, 0);
+      
+   double JetCount = 0;
 
    for(string FileName : InputFileNames)
    {
@@ -46,6 +48,7 @@ int main(int argc, char *argv[])
       vector<vector<double>> *SignalJetAKDRs = nullptr;
       vector<vector<double>> *SignalJetKTZGs = nullptr;
       vector<vector<double>> *SignalJetKTDRs = nullptr;
+      vector<double> *Weight = nullptr;
 
       Tree->SetBranchAddress("SignalJetPt", &SignalJetRawPt);
       Tree->SetBranchAddress("SignalJetJewelPt", &SignalJetPt);
@@ -57,6 +60,7 @@ int main(int argc, char *argv[])
       Tree->SetBranchAddress("SignalJetAKDRs", &SignalJetAKDRs);
       Tree->SetBranchAddress("SignalJetKTZGs", &SignalJetKTZGs);
       Tree->SetBranchAddress("SignalJetKTDRs", &SignalJetKTDRs);
+      Tree->SetBranchAddress("EventWeight", &Weight);
 
       int EntryCount = Tree->GetEntries();
 
@@ -70,31 +74,33 @@ int main(int argc, char *argv[])
          int NJet = SignalJetPt->size();
          for(int iJ = 0; iJ < NJet; iJ++)
          {
-            HJetRawPT.Fill((*SignalJetRawPt)[iJ]);
-            HJetPT.Fill((*SignalJetPt)[iJ]);
+            HJetRawPT.Fill((*SignalJetRawPt)[iJ], (*Weight)[0]);
+            HJetPT.Fill((*SignalJetPt)[iJ], (*Weight)[0]);
 
             if((*SignalJetEta)[iJ] < -2 || (*SignalJetEta)[iJ] > 2)
                continue;
             if((*SignalJetPt)[iJ] < MinPT)
                continue;
 
+            JetCount = JetCount + (*Weight)[0];
+
             for(int iS = 0; iS < (*SignalJetCAZGs)[iJ].size(); iS++)
             {
                double ZG = (*SignalJetCAZGs)[iJ][iS];
                double Theta = (*SignalJetCADRs)[iJ][iS] / 0.4;
-               HLundCA.Fill(-log(Theta), log(ZG * Theta));
+               HLundCA.Fill(-log(Theta), log(ZG * Theta), (*Weight)[0]);
             }
             for(int iS = 0; iS < (*SignalJetAKZGs)[iJ].size(); iS++)
             {
                double ZG = (*SignalJetAKZGs)[iJ][iS];
                double Theta = (*SignalJetAKDRs)[iJ][iS] / 0.4;
-               HLundAK.Fill(-log(Theta), log(ZG * Theta));
+               HLundAK.Fill(-log(Theta), log(ZG * Theta), (*Weight)[0]);
             }
             for(int iS = 0; iS < (*SignalJetKTZGs)[iJ].size(); iS++)
             {
                double ZG = (*SignalJetKTZGs)[iJ][iS];
                double Theta = (*SignalJetKTDRs)[iJ][iS] / 0.4;
-               HLundKT.Fill(-log(Theta), log(ZG * Theta));
+               HLundKT.Fill(-log(Theta), log(ZG * Theta), (*Weight)[0]);
             }
          }
       }
@@ -102,8 +108,12 @@ int main(int argc, char *argv[])
       File.Close();
    }
 
-   PdfFile.AddPlot(HJetRawPT, "", true);
-   PdfFile.AddPlot(HJetPT, "", true);
+   HLundCA.Scale(1 / JetCount);
+   HLundAK.Scale(1 / JetCount);
+   HLundKT.Scale(1 / JetCount);
+
+   // PdfFile.AddPlot(HJetRawPT, "", true);
+   // PdfFile.AddPlot(HJetPT, "", true);
    PdfFile.AddPlot(HLundCA, "colz");
    PdfFile.AddPlot(HLundAK, "colz");
    PdfFile.AddPlot(HLundKT, "colz");
