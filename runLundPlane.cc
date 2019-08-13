@@ -135,13 +135,19 @@ int main(int argc, char *argv[])
       JCSDJewel.addVector(Tag + "SDJewelSubjet2", CalculateSubjet2(SDJewel));
 
       softDropCounter CounterCA(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterCAAK(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       softDropCounter CounterAK(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       softDropCounter CounterKT(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterCAKT(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       CounterCA.setAlgorithm(0);
+      CounterCAAK.setAlgorithm(-0.5);
       CounterAK.setAlgorithm(-1);
+      CounterCAKT.setAlgorithm(0.5);
       CounterKT.setAlgorithm(1);
       CounterCA.run(JC, ParticlesDummy);
+      CounterCAAK.run(JC, ParticlesDummy);
       CounterAK.run(JC, ParticlesDummy);
+      CounterCAKT.run(JC, ParticlesDummy);
       CounterKT.run(JC, ParticlesDummy);
       JC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
       JC.addVector(Tag + "CADRs", CounterCA.GetDRs());
@@ -151,6 +157,22 @@ int main(int argc, char *argv[])
       JC.addVector(Tag + "CAPT2s", CounterCA.GetPT2s());
       JC.addVector(Tag + "CAEta2s", CounterCA.GetEta2s());
       JC.addVector(Tag + "CAPhi2s", CounterCA.GetPhi2s());
+      JC.addVector(Tag + "CAAKZGs", CounterCAAK.GetZGs());
+      JC.addVector(Tag + "CAAKDRs", CounterCAAK.GetDRs());
+      JC.addVector(Tag + "CAAKPT1s", CounterCAAK.GetPT1s());
+      JC.addVector(Tag + "CAAKEta1s", CounterCAAK.GetEta1s());
+      JC.addVector(Tag + "CAAKPhi1s", CounterCAAK.GetPhi1s());
+      JC.addVector(Tag + "CAAKPT2s", CounterCAAK.GetPT2s());
+      JC.addVector(Tag + "CAAKEta2s", CounterCAAK.GetEta2s());
+      JC.addVector(Tag + "CAAKPhi2s", CounterCAAK.GetPhi2s());
+      JC.addVector(Tag + "CAKTZGs", CounterCAKT.GetZGs());
+      JC.addVector(Tag + "CAKTDRs", CounterCAKT.GetDRs());
+      JC.addVector(Tag + "CAKTPT1s", CounterCAKT.GetPT1s());
+      JC.addVector(Tag + "CAKTEta1s", CounterCAKT.GetEta1s());
+      JC.addVector(Tag + "CAKTPhi1s", CounterCAKT.GetPhi1s());
+      JC.addVector(Tag + "CAKTPT2s", CounterCAKT.GetPT2s());
+      JC.addVector(Tag + "CAKTEta2s", CounterCAKT.GetEta2s());
+      JC.addVector(Tag + "CAKTPhi2s", CounterCAKT.GetPhi2s());
       JC.addVector(Tag + "AKZGs", CounterAK.GetZGs());
       JC.addVector(Tag + "AKDRs", CounterAK.GetDRs());
       JC.addVector(Tag + "AKPT1s", CounterAK.GetPT1s());
