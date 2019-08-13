@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
    int EventCount = cmdline.value<int>("-nev", 1);
    //bool verbose = cmdline.present("-verbose");
 
+   bool DoPythiaShower = cmdline.present("-pythiashower");
+
    cout << "will run on " << EventCount << " events" << endl;
 
    // Uncomment to silence fastjet banner
@@ -109,6 +111,40 @@ int main(int argc, char *argv[])
       }
 
       //---------------------------------------------------------------------------
+      //   Leading parton history
+      //---------------------------------------------------------------------------
+      
+      vector<PseudoJet> Parton;
+      vector<double> PartonZG, PartonDR;
+      vector<PseudoJet> PartonSJ1, PartonSJ2;
+      
+      if(DoPythiaShower)
+      {
+         const EventList &List = mixer.get_hard_list();
+
+         vector<int> HardParticles = List.GetListByStatus(23);   // pythia8
+
+         int HardIndex = -1;
+         for(int i = 0; i < (int)HardParticles.size(); i++)
+            if(HardIndex < 0 || List.P[HardIndex].perp() < List.P[HardParticles[i]].perp())
+               HardIndex = HardParticles[i];
+         Parton.push_back(List.P[HardIndex]);
+
+         if(HardIndex >= 0)
+         {
+            vector<int> HardShower = List.TraceShower(HardIndex);
+            HardShower = List.KeepParton(HardShower);
+            if(HardShower.size() > 0)
+               HardShower.pop_back();
+
+            PartonZG = List.GetZGs(HardShower);
+            PartonDR = List.GetDRs(HardShower);
+            PartonSJ1 = List.GetSJ1s(HardShower);
+            PartonSJ2 = List.GetSJ2s(HardShower);
+         }
+      }
+
+      //---------------------------------------------------------------------------
       //   Jet clustering
       //---------------------------------------------------------------------------
 
@@ -137,8 +173,8 @@ int main(int argc, char *argv[])
       softDropCounter CounterCA(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       softDropCounter CounterCAAK(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       softDropCounter CounterAK(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
-      softDropCounter CounterKT(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       softDropCounter CounterCAKT(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterKT(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       CounterCA.setAlgorithm(0);
       CounterCAAK.setAlgorithm(-0.5);
       CounterAK.setAlgorithm(-1);
@@ -201,6 +237,15 @@ int main(int argc, char *argv[])
       Writer.addCollection(Tag + "Jewel", JCJewel);
 
       Writer.addCollection("EventWeight",      EventWeight);
+
+      if(DoPythiaShower)
+      {
+         Writer.addCollection("Parton",           Parton);
+         Writer.addCollection("PartonZGs",        PartonZG);
+         Writer.addCollection("PartonDRs",        PartonDR);
+         Writer.addCollection("PartonSJ1s",       PartonSJ1);
+         Writer.addCollection("PartonSJ2s",       PartonSJ2);
+      }
 
       Writer.fillTree();
 

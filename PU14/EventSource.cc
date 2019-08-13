@@ -112,8 +112,7 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
    static string EventString = "";
    string line;
 
-   int PCount = 0;
-   int VCount = 0;
+   E.Clean();
 
    bool EventDone = false;
 
@@ -155,10 +154,7 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
          E.CopyParticles(particles, event_weight);
          EventString = line;
          EventDone = true;
-
-         E.Clean();
-         PCount = 0;
-         VCount = 0;
+         List.Initialize(E);
 
          break;
       }
@@ -183,7 +179,7 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
       }
       if(Type == "V")
       {
-         str >> E.V[0][VCount] >> E.V[1][VCount];
+         str >> E.V[0][E.VCount] >> E.V[1][E.VCount];
 
          // Do something here later if needed
          string ParticleIn = "";
@@ -192,15 +188,15 @@ bool EventSource::append_next_event_hepmc3(std::vector<fastjet::PseudoJet> & par
          string Dummy = "";
          str >> Dummy;
          if(Dummy == "@")
-            str >> E.V[2][VCount] >> E.V[3][VCount] >> E.V[4][VCount] >> E.V[5][VCount];
+            str >> E.V[2][E.VCount] >> E.V[3][E.VCount] >> E.V[4][E.VCount] >> E.V[5][E.VCount];
 
-         VCount = VCount + 1;
+         E.VCount = E.VCount + 1;
       }
       if(Type == "P")
       {
          for(int i = 0; i < 9; i++)
-            str >> E.P[i][PCount];
-         PCount = PCount + 1;
+            str >> E.P[i][E.PCount];
+         E.PCount = E.PCount + 1;
       }
    }
 
@@ -217,6 +213,9 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
    static bool BeforeFirstEvent = true;
    static string EventString = "";
    string line;
+   int PreviousV = 0;
+
+   E.Clean();
 
    bool EventDone = false;
 
@@ -268,8 +267,7 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
          E.CopyParticles(particles, event_weight);
          EventString = line;
          EventDone = true;
-
-         E.Clean();
+         List.Initialize(E);
 
          break;
       }
@@ -278,11 +276,18 @@ bool EventSource::append_next_event_hepmc2(std::vector<fastjet::PseudoJet> & par
       if(Type == "C")   for(int i = 0; i < 2; i++)    str >> E.C[i];
       if(Type == "H")   for(int i = 0; i < 13; i++)   str >> E.H[i];
       if(Type == "F")   for(int i = 0; i < 9; i++)    str >> E.F[i];
-      if(Type == "V")   for(int i = 0; i < 9; i++)    str >> E.V[i];
+      if(Type == "V")
+      {
+         for(int i = 0; i < 9; i++)
+            str >> E.V[i][E.VCount];
+         PreviousV = E.V[0][E.VCount];
+         E.VCount = E.VCount + 1;
+      }
       if(Type == "P")
       {
          for(int i = 0; i < 12; i++)
             str >> E.P[i][E.PCount];
+         E.P[12][E.PCount] = PreviousV;
          E.PCount = E.PCount + 1;
       }
    }

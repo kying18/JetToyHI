@@ -34,6 +34,8 @@ public:
   /// Returns true if it successfully produced the event, false otherwise.
   bool next_event(); 
 
+  const EventList &get_hard_list() {return _hard->List;}
+
   /// returns a reference to vector of particles in the last event
   /// that was read in
   const std::vector<fastjet::PseudoJet> & particles() const {return _particles;}

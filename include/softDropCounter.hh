@@ -54,6 +54,7 @@ public :
    std::vector<std::vector<double>> GetPT2s() {return pt2s_;}
    std::vector<std::vector<double>> GetEta2s() {return eta2s_;}
    std::vector<std::vector<double>> GetPhi2s() {return phi2s_;}
+   void run(const jetCollection &c);
    void run(const jetCollection &c, const std::vector<fastjet::PseudoJet> &dummy);
    void run(const std::vector<fastjet::PseudoJet> &v);
    void run();
@@ -93,6 +94,12 @@ void softDropCounter::setAlgorithm(int algo)
 void softDropCounter::setInputJets(const std::vector<fastjet::PseudoJet> &v)
 {
    fjInputs_ = v;
+}
+
+void softDropCounter::run(const jetCollection &c)
+{
+   dummy_.clear();
+   run(c.getJet());
 }
 
 void softDropCounter::run(const jetCollection &c, const std::vector<fastjet::PseudoJet> &dummy)
