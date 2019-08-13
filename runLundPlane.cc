@@ -145,10 +145,28 @@ int main(int argc, char *argv[])
       CounterKT.run(JC, ParticlesDummy);
       JC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
       JC.addVector(Tag + "CADRs", CounterCA.GetDRs());
+      JC.addVector(Tag + "CAPT1s", CounterCA.GetPT1s());
+      JC.addVector(Tag + "CAEta1s", CounterCA.GetEta1s());
+      JC.addVector(Tag + "CAPhi1s", CounterCA.GetPhi1s());
+      JC.addVector(Tag + "CAPT2s", CounterCA.GetPT2s());
+      JC.addVector(Tag + "CAEta2s", CounterCA.GetEta2s());
+      JC.addVector(Tag + "CAPhi2s", CounterCA.GetPhi2s());
       JC.addVector(Tag + "AKZGs", CounterAK.GetZGs());
       JC.addVector(Tag + "AKDRs", CounterAK.GetDRs());
+      JC.addVector(Tag + "AKPT1s", CounterAK.GetPT1s());
+      JC.addVector(Tag + "AKEta1s", CounterAK.GetEta1s());
+      JC.addVector(Tag + "AKPhi1s", CounterAK.GetPhi1s());
+      JC.addVector(Tag + "AKPT2s", CounterAK.GetPT2s());
+      JC.addVector(Tag + "AKEta2s", CounterAK.GetEta2s());
+      JC.addVector(Tag + "AKPhi2s", CounterAK.GetPhi2s());
       JC.addVector(Tag + "KTZGs", CounterKT.GetZGs());
       JC.addVector(Tag + "KTDRs", CounterKT.GetDRs());
+      JC.addVector(Tag + "KTPT1s", CounterKT.GetPT1s());
+      JC.addVector(Tag + "KTEta1s", CounterKT.GetEta1s());
+      JC.addVector(Tag + "KTPhi1s", CounterKT.GetPhi1s());
+      JC.addVector(Tag + "KTPT2s", CounterKT.GetPT2s());
+      JC.addVector(Tag + "KTEta2s", CounterKT.GetEta2s());
+      JC.addVector(Tag + "KTPhi2s", CounterKT.GetPhi2s());
 
       //---------------------------------------------------------------------------
       //   Write tree
