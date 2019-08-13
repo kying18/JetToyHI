@@ -31,6 +31,12 @@ private :
    std::vector<fastjet::PseudoJet> dummy_;
    std::vector<std::vector<double>> zgs_;         // all the zg's in the algorithm
    std::vector<std::vector<double>> drs_;         // and the angles in the algorithm
+   std::vector<std::vector<double>> pt1s_;
+   std::vector<std::vector<double>> eta1s_;
+   std::vector<std::vector<double>> phi1s_;
+   std::vector<std::vector<double>> pt2s_;
+   std::vector<std::vector<double>> eta2s_;
+   std::vector<std::vector<double>> phi2s_;
 
 public :
    softDropCounter(double z = 0.1, double beta = 0.0, double r0 = 0.4, double rcut = 0.1);
@@ -42,6 +48,12 @@ public :
    void setInputJets(const std::vector<fastjet::PseudoJet> &v);
    std::vector<std::vector<double>> GetZGs() {return zgs_;}
    std::vector<std::vector<double>> GetDRs() {return drs_;}
+   std::vector<std::vector<double>> GetPT1s() {return pt1s_;}
+   std::vector<std::vector<double>> GetEta1s() {return eta1s_;}
+   std::vector<std::vector<double>> GetPhi1s() {return phi1s_;}
+   std::vector<std::vector<double>> GetPT2s() {return pt2s_;}
+   std::vector<std::vector<double>> GetEta2s() {return eta2s_;}
+   std::vector<std::vector<double>> GetPhi2s() {return phi2s_;}
    void run(const jetCollection &c, const std::vector<fastjet::PseudoJet> &dummy);
    void run(const std::vector<fastjet::PseudoJet> &v);
    void run();
@@ -105,6 +117,12 @@ void softDropCounter::run()
       {
          zgs_.push_back(vector<double>());
          drs_.push_back(vector<double>());
+         pt1s_.push_back(vector<double>());
+         eta1s_.push_back(vector<double>());
+         phi1s_.push_back(vector<double>());
+         pt2s_.push_back(vector<double>());
+         eta2s_.push_back(vector<double>());
+         phi2s_.push_back(vector<double>());
          continue;
       }
 
@@ -125,6 +143,12 @@ void softDropCounter::run()
       {
          zgs_.push_back(vector<double>());
          drs_.push_back(vector<double>());
+         pt1s_.push_back(vector<double>());
+         eta1s_.push_back(vector<double>());
+         phi1s_.push_back(vector<double>());
+         pt2s_.push_back(vector<double>());
+         eta2s_.push_back(vector<double>());
+         phi2s_.push_back(vector<double>());
          continue;
       }
 
@@ -133,6 +157,12 @@ void softDropCounter::run()
 
       std::vector<double> z;
       std::vector<double> dr;
+      std::vector<double> pt1;
+      std::vector<double> eta1;
+      std::vector<double> phi1;
+      std::vector<double> pt2;
+      std::vector<double> eta2;
+      std::vector<double> phi2;
 
       while(CurrentJet.has_parents(Part1, Part2))
       {
@@ -167,6 +197,12 @@ void softDropCounter::run()
          {
             z.push_back(zg);
             dr.push_back(DeltaR);
+            pt1.push_back(PT1);
+            eta1.push_back(Part1.eta());
+            phi1.push_back(Part1.phi());
+            pt2.push_back(PT2);
+            eta2.push_back(Part2.eta());
+            phi2.push_back(Part2.phi());
          }
 
          if(PT1 > PT2)
@@ -177,6 +213,12 @@ void softDropCounter::run()
 
       zgs_.push_back(z);
       drs_.push_back(dr);
+      pt1s_.push_back(pt1);
+      eta1s_.push_back(eta1);
+      phi1s_.push_back(phi1);
+      pt2s_.push_back(pt2);
+      eta2s_.push_back(eta2);
+      phi2s_.push_back(phi2);
    }
 }
 
