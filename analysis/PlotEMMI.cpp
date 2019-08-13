@@ -23,11 +23,11 @@ int main(int argc, char *argv[])
    TH1D HJetSDPT("HJetSDPT", "Jet SD PT (Jet Signal Only)", 200, 0, 500);
    TH1D HAllJetPT("HAllJetPT", "Jet PT (Signal+Background)", 200, 0, 500);
    TH1D HAllJetSDPT("HAllJetSDPT", "Jet SD PT (Signal+Background)", 200, 0, 500);
-   TH2D HEMMI("HEMMI", "All Hadrons;ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
-   TH2D HEMMIConstituent("HEMMIConstituent", "Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
-   TH2D HEMMISDConstituent("HEMMISDConstituent", "SD Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
-   TH2D HEMMIAllConstituent("HEMMIAllConstituent", "Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
-   TH2D HEMMISDAllConstituent("HEMMISDAllConstituent", "SD Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(z)", 100, log(1/1), log(100000), 100, -10, 0);
+   TH2D HEMMI("HEMMI", "All Hadrons;ln(1/#Delta#Theta);ln(1/z)", 100, log(1/1), log(100000), 100, 0, 10);
+   TH2D HEMMIConstituent("HEMMIConstituent", "Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(1/z)", 100, log(1/1), log(100000), 100, 0, 10);
+   TH2D HEMMISDConstituent("HEMMISDConstituent", "SD Constituent Hadrons (Jet Signal Only);ln(1/#Delta#Theta);ln(1/z)", 100, log(1/1), log(100000), 100, 0, 10);
+   TH2D HEMMIAllConstituent("HEMMIAllConstituent", "Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(1/z)", 100, log(1/1), log(100000), 100, 0, 10);
+   TH2D HEMMISDAllConstituent("HEMMISDAllConstituent", "SD Constituent Hadrons (Signal+Background);ln(1/#Delta#Theta);ln(1/z)", 100, log(1/1), log(100000), 100, 0, 10);
    TH2D HEMMIClassic("HEMMIClassic", "All Hadrons;#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
    TH2D HEMMIClassicConstituent("HEMMIClassicConstituent", "Constituent Hadrons (Jet Signal Only);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
    TH2D HEMMIClassicSDConstituent("HEMMIClassicSDConstituent", "SD Constituent Hadrons (Jet Signal Only);#Delta#Theta;ln(z)", 100, 0, 1, 100, -10, 0);
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
                }
                double ZG = p.P()/j.P();
                double dTheta = fabs(j.DeltaPhi(p));
-               HEMMI.Fill(log(1./dTheta), log(ZG), W);
+               HEMMI.Fill(log(1./dTheta), log(1/ZG), W);
                HEMMIClassic.Fill(dTheta, log(ZG), W);
             }
 
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
                }
                double ZG = p.P()/j.P();
                double dTheta = fabs(j.DeltaPhi(p));
-               HEMMIConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMIConstituent.Fill(log(1./dTheta), log(1/ZG), W);
                HEMMIClassicConstituent.Fill(dTheta, log(ZG), W);
             }
 
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
                }
                double ZG = p.P()/j.P();
                double dTheta = fabs(j.DeltaPhi(p));
-               HEMMISDConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMISDConstituent.Fill(log(1./dTheta), log(1/ZG), W);
                HEMMIClassicSDConstituent.Fill(dTheta, log(ZG), W);
             }
          }
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
                }
                double ZG = p.P()/j.P();
                double dTheta = fabs(j.DeltaPhi(p));
-               HEMMIAllConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMIAllConstituent.Fill(log(1./dTheta), log(1/ZG), W);
                HEMMIClassicAllConstituent.Fill(dTheta, log(ZG), W);
             }
 
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
                }
                double ZG = p.P()/j.P();
                double dTheta = fabs(j.DeltaPhi(p));
-               HEMMISDAllConstituent.Fill(log(1./dTheta), log(ZG), W);
+               HEMMISDAllConstituent.Fill(log(1./dTheta), log(1/ZG), W);
                HEMMIClassicSDAllConstituent.Fill(dTheta, log(ZG), W);
             }
 
