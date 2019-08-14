@@ -165,16 +165,6 @@ int main(int argc, char *argv[])
 
       if(PartonPt->size() == 0)   // WTF      
          continue;
-      
-      for (int i = 0; i < (int)PartonSJ2sPt->size(); i++){
-          double Kt=(*PartonSJ2sPt)[i]*(*PartonDRs)[i];
-	  //cout <<Kt<<" "<<PartonKt2<<" "<<PartonKt1<<endl;
-	  if (Kt>PartonKt2) PartonKt2=Kt;
-	  if (Kt>PartonKt1) {
-	     PartonKt2=PartonKt1;
-	     PartonKt1=Kt;
-	  }   
-      }
 
       if(SignalJetPt->size() == 0)   // WTF
          continue;
@@ -255,6 +245,7 @@ int main(int argc, char *argv[])
       SD1Kt1=(*SignalJetSD1DR12)[BestJetIndex]*(*SignalJetSD1Subjet2Pt)[BestJetIndex];
       SD2Kt1=(*SignalJetSD2DR12)[BestJetIndex]*(*SignalJetSD2Subjet2Pt)[BestJetIndex];
       SD3Kt1=(*SignalJetSD3DR12)[BestJetIndex]*(*SignalJetSD3Subjet2Pt)[BestJetIndex];
+      
       t->Fill();
    }
 
