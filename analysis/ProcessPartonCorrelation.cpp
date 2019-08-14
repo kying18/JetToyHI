@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
    string Title = CL.Get("Title", "");
    string OutputBase = CL.Get("OutputBase", "Correlation");
 
-   TFile File(CL.Get("InputFile", "LundPartonTestUEOn-98.root").c_str());
+   TFile File(CL.Get("InputFile", "test.root").c_str());
    
    
    int DoZG = CL.GetInt("DoZG", 0);
@@ -50,18 +50,21 @@ int main(int argc, char *argv[])
    vector<double> *SignalJetSD1Subjet2Pt = nullptr;
    vector<double> *SignalJetSD1Subjet2Eta = nullptr;
    vector<double> *SignalJetSD1Subjet2Phi = nullptr;
+   vector<double> *SignalJetSD1DR12 = nullptr;
    vector<double> *SignalJetSD2Subjet1Pt = nullptr;
    vector<double> *SignalJetSD2Subjet1Eta = nullptr;
    vector<double> *SignalJetSD2Subjet1Phi = nullptr;
    vector<double> *SignalJetSD2Subjet2Pt = nullptr;
    vector<double> *SignalJetSD2Subjet2Eta = nullptr;
    vector<double> *SignalJetSD2Subjet2Phi = nullptr;
+   vector<double> *SignalJetSD2DR12 = nullptr;
    vector<double> *SignalJetSD3Subjet1Pt = nullptr;
    vector<double> *SignalJetSD3Subjet1Eta = nullptr;
    vector<double> *SignalJetSD3Subjet1Phi = nullptr;
    vector<double> *SignalJetSD3Subjet2Pt = nullptr;
    vector<double> *SignalJetSD3Subjet2Eta = nullptr;
    vector<double> *SignalJetSD3Subjet2Phi = nullptr;
+   vector<double> *SignalJetSD3DR12 = nullptr;
    vector<double> *PartonPt = nullptr;
    vector<double> *PartonEta = nullptr;
    vector<double> *PartonPhi = nullptr;
@@ -88,18 +91,21 @@ int main(int argc, char *argv[])
    Tree->SetBranchAddress("SignalJetSD1Subjet2Pt",  &SignalJetSD1Subjet2Pt);
    Tree->SetBranchAddress("SignalJetSD1Subjet2Eta", &SignalJetSD1Subjet2Eta);
    Tree->SetBranchAddress("SignalJetSD1Subjet2Phi", &SignalJetSD1Subjet2Phi);
+   Tree->SetBranchAddress("SignalJetSD1DR12",       &SignalJetSD1DR12);
    Tree->SetBranchAddress("SignalJetSD2Subjet1Pt",  &SignalJetSD2Subjet1Pt);
    Tree->SetBranchAddress("SignalJetSD2Subjet1Eta", &SignalJetSD2Subjet1Eta);
    Tree->SetBranchAddress("SignalJetSD2Subjet1Phi", &SignalJetSD2Subjet1Phi);
    Tree->SetBranchAddress("SignalJetSD2Subjet2Pt",  &SignalJetSD2Subjet2Pt);
    Tree->SetBranchAddress("SignalJetSD2Subjet2Eta", &SignalJetSD2Subjet2Eta);
    Tree->SetBranchAddress("SignalJetSD2Subjet2Phi", &SignalJetSD2Subjet2Phi);
+   Tree->SetBranchAddress("SignalJetSD2DR12",       &SignalJetSD2DR12);
    Tree->SetBranchAddress("SignalJetSD3Subjet1Pt",  &SignalJetSD3Subjet1Pt);
    Tree->SetBranchAddress("SignalJetSD3Subjet1Eta", &SignalJetSD3Subjet1Eta);
    Tree->SetBranchAddress("SignalJetSD3Subjet1Phi", &SignalJetSD3Subjet1Phi);
    Tree->SetBranchAddress("SignalJetSD3Subjet2Pt",  &SignalJetSD3Subjet2Pt);
    Tree->SetBranchAddress("SignalJetSD3Subjet2Eta", &SignalJetSD3Subjet2Eta);
    Tree->SetBranchAddress("SignalJetSD3Subjet2Phi", &SignalJetSD3Subjet2Phi);
+   Tree->SetBranchAddress("SignalJetSD3DR12",       &SignalJetSD3DR12);
    Tree->SetBranchAddress("PartonPt",               &PartonPt);
    Tree->SetBranchAddress("PartonEta",              &PartonEta);
    Tree->SetBranchAddress("PartonPhi",              &PartonPhi);
@@ -129,6 +135,9 @@ int main(int argc, char *argv[])
    double CAKt2;
    double KTKt1;
    double KTKt2;
+   double SD1Kt1;
+   double SD2Kt1;
+   double SD3Kt1;
    
    t->Branch("LeadingPartonPt" ,&LeadingPartonPt,  "LeadingPartonPt/D" );
    t->Branch("LeadingPartonEta",&LeadingPartonEta, "LeadingPartonEta/D");
@@ -144,6 +153,10 @@ int main(int argc, char *argv[])
    t->Branch("CAKt2"           ,&CAKt2,            "CAKt2/D");
    t->Branch("KTKt1"           ,&KTKt1,            "KTKt1/D");
    t->Branch("KTKt2"           ,&KTKt2,            "KTKt2/D");
+   t->Branch("SD1Kt1"          ,&SD1Kt1,           "SD1Kt1/D");
+   t->Branch("SD2Kt1"          ,&SD2Kt1,           "SD2Kt1/D");
+   t->Branch("SD3Kt1"          ,&SD3Kt1,           "SD3Kt1/D");
+
 
    int EntryCount = Tree->GetEntries();
    for(int iE = 0; iE < EntryCount; iE++)
@@ -200,6 +213,8 @@ int main(int argc, char *argv[])
 	  }   
       }
       
+      
+      // Anti-kT algorithm performance
       AKKt1=0;
       AKKt2=0;
       for (int i = 0; i < (int)SignalJetAKPT2s->size(); i++){
@@ -211,6 +226,7 @@ int main(int argc, char *argv[])
 	  }   
       }
 
+      // CA algorithm performance
       CAKt1=0;
       CAKt2=0;
       for (int i = 0; i < (int)SignalJetCAPT2s->size(); i++){
@@ -222,6 +238,7 @@ int main(int argc, char *argv[])
 	  }   
       }
 
+      // kT algorithm performance
       KTKt1=0;
       KTKt2=0;
       for (int i = 0; i < (int)SignalJetKTPT2s->size(); i++){
@@ -232,8 +249,12 @@ int main(int argc, char *argv[])
 	     KTKt1=Kt;
 	  }   
       }
-
       
+      // Groomed jet performance
+
+      SD1Kt1=(*SignalJetSD1DR12)[BestJetIndex]*(*SignalJetSD1Subjet2Pt)[BestJetIndex];
+      SD2Kt1=(*SignalJetSD2DR12)[BestJetIndex]*(*SignalJetSD2Subjet2Pt)[BestJetIndex];
+      SD3Kt1=(*SignalJetSD3DR12)[BestJetIndex]*(*SignalJetSD3Subjet2Pt)[BestJetIndex];
       t->Fill();
    }
 
