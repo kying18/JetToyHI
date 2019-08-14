@@ -25,7 +25,7 @@ private :
    double beta_;   // Beta parameter
    double r0_;     // Jet radius
    double rcut_;   // Termination Criteria
-   int    algorithm_;   // what algorithm to use
+   double algorithm_;   // what algorithm to use
 
    std::vector<fastjet::PseudoJet> fjInputs_;     // ungroomed jets
    std::vector<fastjet::PseudoJet> dummy_;
@@ -44,7 +44,7 @@ public :
    void setBeta(double b);
    void setR0(double r) ;
    void setRCut(double r);
-   void setAlgorithm(int algo);
+   void setAlgorithm(double algo);
    void setInputJets(const std::vector<fastjet::PseudoJet> &v);
    std::vector<std::vector<double>> GetZGs() {return zgs_;}
    std::vector<std::vector<double>> GetDRs() {return drs_;}
@@ -86,7 +86,7 @@ void softDropCounter::setRCut(double r)
    rcut_ = r;
 }
    
-void softDropCounter::setAlgorithm(int algo)
+void softDropCounter::setAlgorithm(double algo)
 {
    algorithm_ = algo;
 }
@@ -136,15 +136,33 @@ void softDropCounter::run()
       std::vector<fastjet::PseudoJet> particles, ghosts;
       fastjet::SelectorIsPureGhost().sift(jet.constituents(), ghosts, particles);
 
-      auto algorithm = fastjet::cambridge_algorithm;
-      if(algorithm_ > 0)
-         algorithm = fastjet::kt_algorithm;
-      if(algorithm_ < 0)
-         algorithm = fastjet::antikt_algorithm;
+      std::vector<fastjet::PseudoJet> tempJets;
 
-      fastjet::JetDefinition jet_def(algorithm, 999.);
-      fastjet::ClusterSequence cs(particles, jet_def);
-      std::vector<fastjet::PseudoJet> tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
+      // if(algorithm_ == 0)
+      // {
+      //    fastjet::JetDefinition jet_def(fastjet::cambridge_algorithm, 999.);
+      //    fastjet::ClusterSequence cs(particles, jet_def);
+      //    tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
+      // }
+      // else if(algorithm_ == 1)
+      // {
+      //    fastjet::JetDefinition jet_def(fastjet::kt_algorithm, 999.);
+      //    fastjet::ClusterSequence cs(particles, jet_def);
+      //    tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
+      // }
+      // else if(algorithm_ == -1)
+      // {
+      //    fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, 999.);
+      //    fastjet::ClusterSequence cs(particles, jet_def);
+      //    tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
+      // }
+      // else
+      // {
+         fastjet::JetDefinition jet_def(fastjet::genkt_algorithm, 999., algorithm_);
+         fastjet::ClusterSequence cs(particles, jet_def);
+         tempJets = fastjet::sorted_by_pt(cs.inclusive_jets());
+      // }
+
 
       if(tempJets.size() == 0)
       {
