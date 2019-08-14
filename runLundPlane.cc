@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
    //bool verbose = cmdline.present("-verbose");
 
    bool DoPythiaShower = cmdline.present("-pythiashower");
+   bool DoSubtraction = cmdline.present("-subtraction");
 
    cout << "will run on " << EventCount << " events" << endl;
 
@@ -154,13 +155,22 @@ int main(int argc, char *argv[])
       jetCollection JC(sorted_by_pt(JetSelector(Cluster.inclusive_jets(10))));
       jetCollection JCJewel(GetCorrectedJets(JC.getJet(), ParticlesDummy));
 
+      vector<double> Rho, RhoM;
+      csSubtractor Subtractor(JetR, 0, -1, 0.005, 6.0, 3.0);
+      Subtractor.setInputParticles(ParticlesReal);
+      jetCollection JCSub(Subtractor.doSubtraction());
+      Rho.push_back(Subtractor.getRho());
+      RhoM.push_back(Subtractor.getRhoM());
+
+      jetCollection &JCC = (DoSubtraction ? JCSub : JC);
+
       softDropGroomer SD1(0.10, 0.00, JetR);
       softDropGroomer SD2(0.50, 1.50, JetR);
       softDropGroomer SD3(0.25, 0.00, JetR);
 
-      jetCollection JCSD1(SD1.doGrooming(JC));
-      jetCollection JCSD2(SD2.doGrooming(JC));
-      jetCollection JCSD3(SD3.doGrooming(JC));
+      jetCollection JCSD1(SD1.doGrooming(JCC));
+      jetCollection JCSD2(SD2.doGrooming(JCC));
+      jetCollection JCSD3(SD3.doGrooming(JCC));
       JCSD1.addVector(Tag + "SD1ZG",      SD1.getZgs());
       JCSD1.addVector(Tag + "SD1NBranch", SD1.getNDroppedSubjets());
       JCSD1.addVector(Tag + "SD1DR12",    SD1.getDR12());
@@ -209,51 +219,51 @@ int main(int argc, char *argv[])
       CounterAK.setAlgorithm(-1);
       CounterCAKT.setAlgorithm(0.5);
       CounterKT.setAlgorithm(1);
-      CounterCA.run(JC, ParticlesDummy);
-      CounterCAAK.run(JC, ParticlesDummy);
-      CounterAK.run(JC, ParticlesDummy);
-      CounterCAKT.run(JC, ParticlesDummy);
-      CounterKT.run(JC, ParticlesDummy);
-      JC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
-      JC.addVector(Tag + "CADRs", CounterCA.GetDRs());
-      JC.addVector(Tag + "CAPT1s", CounterCA.GetPT1s());
-      JC.addVector(Tag + "CAEta1s", CounterCA.GetEta1s());
-      JC.addVector(Tag + "CAPhi1s", CounterCA.GetPhi1s());
-      JC.addVector(Tag + "CAPT2s", CounterCA.GetPT2s());
-      JC.addVector(Tag + "CAEta2s", CounterCA.GetEta2s());
-      JC.addVector(Tag + "CAPhi2s", CounterCA.GetPhi2s());
-      JC.addVector(Tag + "CAAKZGs", CounterCAAK.GetZGs());
-      JC.addVector(Tag + "CAAKDRs", CounterCAAK.GetDRs());
-      JC.addVector(Tag + "CAAKPT1s", CounterCAAK.GetPT1s());
-      JC.addVector(Tag + "CAAKEta1s", CounterCAAK.GetEta1s());
-      JC.addVector(Tag + "CAAKPhi1s", CounterCAAK.GetPhi1s());
-      JC.addVector(Tag + "CAAKPT2s", CounterCAAK.GetPT2s());
-      JC.addVector(Tag + "CAAKEta2s", CounterCAAK.GetEta2s());
-      JC.addVector(Tag + "CAAKPhi2s", CounterCAAK.GetPhi2s());
-      JC.addVector(Tag + "CAKTZGs", CounterCAKT.GetZGs());
-      JC.addVector(Tag + "CAKTDRs", CounterCAKT.GetDRs());
-      JC.addVector(Tag + "CAKTPT1s", CounterCAKT.GetPT1s());
-      JC.addVector(Tag + "CAKTEta1s", CounterCAKT.GetEta1s());
-      JC.addVector(Tag + "CAKTPhi1s", CounterCAKT.GetPhi1s());
-      JC.addVector(Tag + "CAKTPT2s", CounterCAKT.GetPT2s());
-      JC.addVector(Tag + "CAKTEta2s", CounterCAKT.GetEta2s());
-      JC.addVector(Tag + "CAKTPhi2s", CounterCAKT.GetPhi2s());
-      JC.addVector(Tag + "AKZGs", CounterAK.GetZGs());
-      JC.addVector(Tag + "AKDRs", CounterAK.GetDRs());
-      JC.addVector(Tag + "AKPT1s", CounterAK.GetPT1s());
-      JC.addVector(Tag + "AKEta1s", CounterAK.GetEta1s());
-      JC.addVector(Tag + "AKPhi1s", CounterAK.GetPhi1s());
-      JC.addVector(Tag + "AKPT2s", CounterAK.GetPT2s());
-      JC.addVector(Tag + "AKEta2s", CounterAK.GetEta2s());
-      JC.addVector(Tag + "AKPhi2s", CounterAK.GetPhi2s());
-      JC.addVector(Tag + "KTZGs", CounterKT.GetZGs());
-      JC.addVector(Tag + "KTDRs", CounterKT.GetDRs());
-      JC.addVector(Tag + "KTPT1s", CounterKT.GetPT1s());
-      JC.addVector(Tag + "KTEta1s", CounterKT.GetEta1s());
-      JC.addVector(Tag + "KTPhi1s", CounterKT.GetPhi1s());
-      JC.addVector(Tag + "KTPT2s", CounterKT.GetPT2s());
-      JC.addVector(Tag + "KTEta2s", CounterKT.GetEta2s());
-      JC.addVector(Tag + "KTPhi2s", CounterKT.GetPhi2s());
+      CounterCA.run(JCC, ParticlesDummy);
+      CounterCAAK.run(JCC, ParticlesDummy);
+      CounterAK.run(JCC, ParticlesDummy);
+      CounterCAKT.run(JCC, ParticlesDummy);
+      CounterKT.run(JCC, ParticlesDummy);
+      JCC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
+      JCC.addVector(Tag + "CADRs", CounterCA.GetDRs());
+      JCC.addVector(Tag + "CAPT1s", CounterCA.GetPT1s());
+      JCC.addVector(Tag + "CAEta1s", CounterCA.GetEta1s());
+      JCC.addVector(Tag + "CAPhi1s", CounterCA.GetPhi1s());
+      JCC.addVector(Tag + "CAPT2s", CounterCA.GetPT2s());
+      JCC.addVector(Tag + "CAEta2s", CounterCA.GetEta2s());
+      JCC.addVector(Tag + "CAPhi2s", CounterCA.GetPhi2s());
+      JCC.addVector(Tag + "CAAKZGs", CounterCAAK.GetZGs());
+      JCC.addVector(Tag + "CAAKDRs", CounterCAAK.GetDRs());
+      JCC.addVector(Tag + "CAAKPT1s", CounterCAAK.GetPT1s());
+      JCC.addVector(Tag + "CAAKEta1s", CounterCAAK.GetEta1s());
+      JCC.addVector(Tag + "CAAKPhi1s", CounterCAAK.GetPhi1s());
+      JCC.addVector(Tag + "CAAKPT2s", CounterCAAK.GetPT2s());
+      JCC.addVector(Tag + "CAAKEta2s", CounterCAAK.GetEta2s());
+      JCC.addVector(Tag + "CAAKPhi2s", CounterCAAK.GetPhi2s());
+      JCC.addVector(Tag + "CAKTZGs", CounterCAKT.GetZGs());
+      JCC.addVector(Tag + "CAKTDRs", CounterCAKT.GetDRs());
+      JCC.addVector(Tag + "CAKTPT1s", CounterCAKT.GetPT1s());
+      JCC.addVector(Tag + "CAKTEta1s", CounterCAKT.GetEta1s());
+      JCC.addVector(Tag + "CAKTPhi1s", CounterCAKT.GetPhi1s());
+      JCC.addVector(Tag + "CAKTPT2s", CounterCAKT.GetPT2s());
+      JCC.addVector(Tag + "CAKTEta2s", CounterCAKT.GetEta2s());
+      JCC.addVector(Tag + "CAKTPhi2s", CounterCAKT.GetPhi2s());
+      JCC.addVector(Tag + "AKZGs", CounterAK.GetZGs());
+      JCC.addVector(Tag + "AKDRs", CounterAK.GetDRs());
+      JCC.addVector(Tag + "AKPT1s", CounterAK.GetPT1s());
+      JCC.addVector(Tag + "AKEta1s", CounterAK.GetEta1s());
+      JCC.addVector(Tag + "AKPhi1s", CounterAK.GetPhi1s());
+      JCC.addVector(Tag + "AKPT2s", CounterAK.GetPT2s());
+      JCC.addVector(Tag + "AKEta2s", CounterAK.GetEta2s());
+      JCC.addVector(Tag + "AKPhi2s", CounterAK.GetPhi2s());
+      JCC.addVector(Tag + "KTZGs", CounterKT.GetZGs());
+      JCC.addVector(Tag + "KTDRs", CounterKT.GetDRs());
+      JCC.addVector(Tag + "KTPT1s", CounterKT.GetPT1s());
+      JCC.addVector(Tag + "KTEta1s", CounterKT.GetEta1s());
+      JCC.addVector(Tag + "KTPhi1s", CounterKT.GetPhi1s());
+      JCC.addVector(Tag + "KTPT2s", CounterKT.GetPT2s());
+      JCC.addVector(Tag + "KTEta2s", CounterKT.GetEta2s());
+      JCC.addVector(Tag + "KTPhi2s", CounterKT.GetPhi2s());
 
       //---------------------------------------------------------------------------
       //   Write tree
@@ -262,8 +272,11 @@ int main(int argc, char *argv[])
       // Give variable we want to write out to treeWriter.
       // Only vectors of the types 'jetCollection', and 'double', 'int', 'PseudoJet' are supported
 
-      Writer.addCollection(Tag + "", JC);
+      Writer.addCollection(Tag + "", JCC);
       Writer.addCollection(Tag + "Jewel", JCJewel);
+
+      Writer.addCollection("Rho",  Rho);
+      Writer.addCollection("RhoM", RhoM);
 
       Writer.addCollection(Tag + "SD1", JCSD1);
       Writer.addCollection(Tag + "SD2", JCSD2);
