@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 
       string Tag = "SignalJet";
 
-      ClusterSequenceArea Cluster(ParticlesSignal, Definition, Area);
+      ClusterSequenceArea Cluster(ParticlesReal, Definition, Area);
       jetCollection JC(sorted_by_pt(JetSelector(Cluster.inclusive_jets(10))));
       jetCollection JCJewel(GetCorrectedJets(JC.getJet(), ParticlesDummy));
 
