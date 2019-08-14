@@ -154,21 +154,50 @@ int main(int argc, char *argv[])
       jetCollection JC(sorted_by_pt(JetSelector(Cluster.inclusive_jets(10))));
       jetCollection JCJewel(GetCorrectedJets(JC.getJet(), ParticlesDummy));
 
-      softDropGroomer SD(0.1, 0.0, JetR);
-      jetCollection JCSD(SD.doGrooming(JC));
-      JCSD.addVector(Tag + "SDZG",      SD.getZgs());
-      JCSD.addVector(Tag + "SDNBranch", SD.getNDroppedSubjets());
-      JCSD.addVector(Tag + "SDDR12",    SD.getDR12());
-      JCSD.addVector(Tag + "SDSubjet1", SD.getSubjets1());
-      JCSD.addVector(Tag + "SDSubjet2", SD.getSubjets2());
+      softDropGroomer SD1(0.10, 0.00, JetR);
+      softDropGroomer SD2(0.50, 1.50, JetR);
+      softDropGroomer SD3(0.25, 0.00, JetR);
 
-      jetCollection JCSDJewel(GetCorrectedJets(SD.getConstituents(), ParticlesDummy));
-      vector<pair<PseudoJet, PseudoJet>> SDJewel
-         = GetCorrectedSubJets(SD.getConstituents1(), SD.getConstituents2(), ParticlesDummy);
-      JCSDJewel.addVector(Tag + "SDJewelZG",      CalculateZG(SDJewel));
-      JCSDJewel.addVector(Tag + "SDJewelDR12",    CalculateDR(SDJewel));
-      JCSDJewel.addVector(Tag + "SDJewelSubjet1", CalculateSubjet1(SDJewel));
-      JCSDJewel.addVector(Tag + "SDJewelSubjet2", CalculateSubjet2(SDJewel));
+      jetCollection JCSD1(SD1.doGrooming(JC));
+      jetCollection JCSD2(SD2.doGrooming(JC));
+      jetCollection JCSD3(SD3.doGrooming(JC));
+      JCSD1.addVector(Tag + "SD1ZG",      SD1.getZgs());
+      JCSD1.addVector(Tag + "SD1NBranch", SD1.getNDroppedSubjets());
+      JCSD1.addVector(Tag + "SD1DR12",    SD1.getDR12());
+      JCSD1.addVector(Tag + "SD1Subjet1", SD1.getSubjets1());
+      JCSD1.addVector(Tag + "SD1Subjet2", SD1.getSubjets2());
+      JCSD2.addVector(Tag + "SD2ZG",      SD2.getZgs());
+      JCSD2.addVector(Tag + "SD2NBranch", SD2.getNDroppedSubjets());
+      JCSD2.addVector(Tag + "SD2DR12",    SD2.getDR12());
+      JCSD2.addVector(Tag + "SD2Subjet1", SD2.getSubjets1());
+      JCSD2.addVector(Tag + "SD2Subjet2", SD2.getSubjets2());
+      JCSD3.addVector(Tag + "SD3ZG",      SD3.getZgs());
+      JCSD3.addVector(Tag + "SD3NBranch", SD3.getNDroppedSubjets());
+      JCSD3.addVector(Tag + "SD3DR12",    SD3.getDR12());
+      JCSD3.addVector(Tag + "SD3Subjet1", SD3.getSubjets1());
+      JCSD3.addVector(Tag + "SD3Subjet2", SD3.getSubjets2());
+
+      jetCollection JCSD1Jewel(GetCorrectedJets(SD1.getConstituents(), ParticlesDummy));
+      jetCollection JCSD2Jewel(GetCorrectedJets(SD2.getConstituents(), ParticlesDummy));
+      jetCollection JCSD3Jewel(GetCorrectedJets(SD3.getConstituents(), ParticlesDummy));
+      vector<pair<PseudoJet, PseudoJet>> SD1Jewel
+         = GetCorrectedSubJets(SD1.getConstituents1(), SD1.getConstituents2(), ParticlesDummy);
+      vector<pair<PseudoJet, PseudoJet>> SD2Jewel
+         = GetCorrectedSubJets(SD2.getConstituents1(), SD2.getConstituents2(), ParticlesDummy);
+      vector<pair<PseudoJet, PseudoJet>> SD3Jewel
+         = GetCorrectedSubJets(SD3.getConstituents1(), SD3.getConstituents2(), ParticlesDummy);
+      JCSD1Jewel.addVector(Tag + "SD1JewelZG",      CalculateZG(SD1Jewel));
+      JCSD1Jewel.addVector(Tag + "SD1JewelDR12",    CalculateDR(SD1Jewel));
+      JCSD1Jewel.addVector(Tag + "SD1JewelSubjet1", CalculateSubjet1(SD1Jewel));
+      JCSD1Jewel.addVector(Tag + "SD1JewelSubjet2", CalculateSubjet2(SD1Jewel));
+      JCSD2Jewel.addVector(Tag + "SD2JewelZG",      CalculateZG(SD2Jewel));
+      JCSD2Jewel.addVector(Tag + "SD2JewelDR12",    CalculateDR(SD2Jewel));
+      JCSD2Jewel.addVector(Tag + "SD2JewelSubjet1", CalculateSubjet1(SD2Jewel));
+      JCSD2Jewel.addVector(Tag + "SD2JewelSubjet2", CalculateSubjet2(SD2Jewel));
+      JCSD3Jewel.addVector(Tag + "SD3JewelZG",      CalculateZG(SD3Jewel));
+      JCSD3Jewel.addVector(Tag + "SD3JewelDR12",    CalculateDR(SD3Jewel));
+      JCSD3Jewel.addVector(Tag + "SD3JewelSubjet1", CalculateSubjet1(SD3Jewel));
+      JCSD3Jewel.addVector(Tag + "SD3JewelSubjet2", CalculateSubjet2(SD3Jewel));
 
       softDropCounter CounterCA(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
       softDropCounter CounterCAAK(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
@@ -235,6 +264,13 @@ int main(int argc, char *argv[])
 
       Writer.addCollection(Tag + "", JC);
       Writer.addCollection(Tag + "Jewel", JCJewel);
+
+      Writer.addCollection(Tag + "SD1", JCSD1);
+      Writer.addCollection(Tag + "SD2", JCSD2);
+      Writer.addCollection(Tag + "SD3", JCSD3);
+      Writer.addCollection(Tag + "SD1Jewel", JCSD1Jewel);
+      Writer.addCollection(Tag + "SD2Jewel", JCSD2Jewel);
+      Writer.addCollection(Tag + "SD3Jewel", JCSD3Jewel);
 
       Writer.addCollection("EventWeight",      EventWeight);
 
