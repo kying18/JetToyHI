@@ -11,6 +11,7 @@ using namespace std;
 #include "TFile.h"
 
 #include "CommandLine.h"
+#include "ProgressBar.h"
 #include "SetStyle.h"
 
 int main(int argc, char *argv[]);
@@ -246,12 +247,17 @@ int main(int argc, char *argv[])
    t->Branch("SD4DR1"          ,&SD4DR1,           "SD4DR1/D");
    t->Branch("SD5DR1"          ,&SD5DR1,           "SD5DR1/D");
 
-
    int EntryCount = Tree.GetEntries();
+   ProgressBar Bar(cout, EntryCount);
+
    for(int iE = 0; iE < EntryCount; iE++)
    {
       Tree.GetEntry(iE);
-      if (iE%1000==0) cout <<iE<<endl;
+
+      Bar.Update(iE);
+      if(iE % 1000 == 0)
+         Bar.Print();
+      
       if(PartonPt->size() == 0)   // WTF      
          continue;
 
@@ -369,6 +375,10 @@ int main(int argc, char *argv[])
 
       t->Fill();
    }
+      
+   Bar.Update(EntryCount);
+   Bar.Print();
+   Bar.PrintLine();
 
    t->Write();
    return 0;

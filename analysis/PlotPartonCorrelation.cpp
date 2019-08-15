@@ -39,16 +39,18 @@ int main(int argc, char *argv[])
    TH2D H("H", TitleString.c_str(),
       100, 0, 5, 100, -2, 6);
 
+   Tree.SetAlias("JPDR", "(sqrt((SignalJetEta[0]-PartonEta)*(SignalJetEta[0]-PartonEta)+(acos(cos(SignalJetPhi[0]-PartonPhi)))*(acos(cos(SignalJetPhi[0]-PartonPhi)))))");
+
    if(DoZG == 0)
    {
-      Tree.Draw(Form("log(Max$(PartonSJ2sPt*PartonDRs*(sqrt((SignalJetEta[0]-PartonEta)*(SignalJetEta[0]-PartonEta)+(acos(cos(SignalJetPhi[0]-PartonPhi)))*(acos(cos(SignalJetPhi[0]-PartonPhi))))<0.4))):log(Max$(SignalJet%sPT2s*SignalJet%sDRs))>>H", Algo.c_str(), Algo.c_str()),
-            Form("SignalJetPt[0]>%d&&log(Max$(PartonSJ2sPt*PartonDRs*(sqrt((SignalJetEta[0]-PartonEta)*(SignalJetEta[0]-PartonEta)+(acos(cos(SignalJetPhi[0]-PartonPhi)))*(acos(cos(SignalJetPhi[0]-PartonPhi))))<0.4)))!=0", JetPTCut),
+      Tree.Draw(Form("log(Max$(PartonSJ2sPt*PartonDRs*(JPDR<0.4)*(PartonDRs<0.4))):log(Max$(SignalJet%sPT2s*SignalJet%sDRs))>>H", Algo.c_str(), Algo.c_str()),
+            Form("SignalJetPt[0]>%d&&log(Max$(PartonSJ2sPt*PartonDRs*(JPDR<0.4)*(PartonDRs<0.4)))!=0", JetPTCut),
             "colz");
    }
    else
    {
-      Tree.Draw(Form("log(Max$(PartonSJ2sPt*PartonDRs*(sqrt((SignalJetEta[0]-PartonEta)*(SignalJetEta[0]-PartonEta)+(acos(cos(SignalJetPhi[0]-PartonPhi)))*(acos(cos(SignalJetPhi[0]-PartonPhi))))<0.4))):log(Max$(SignalJetSD%dSubjet2Pt*SignalJetSD%dDR12))>>H", DoZG, DoZG),
-            Form("SignalJetPt[0]>%d&&log(Max$(PartonSJ2sPt*PartonDRs*(sqrt((SignalJetEta[0]-PartonEta)*(SignalJetEta[0]-PartonEta)+(acos(cos(SignalJetPhi[0]-PartonPhi)))*(acos(cos(SignalJetPhi[0]-PartonPhi))))<0.4)))!=0", JetPTCut),
+      Tree.Draw(Form("log(Max$(PartonSJ2sPt*PartonDRs*(JPDR<0.4)*(PartonDRs<0.4))):log(Max$(SignalJetSD%dSubjet2Pt*SignalJetSD%dDR12))>>H", DoZG, DoZG),
+            Form("SignalJetPt[0]>%d&&log(Max$(PartonSJ2sPt*PartonDRs*(JPDR<0.4)*(PartonDRs<0.4)))!=0", JetPTCut),
             "colz");
    }
 
