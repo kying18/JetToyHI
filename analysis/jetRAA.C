@@ -69,7 +69,7 @@ void jetRAA()
    leg->AddEntry("hPbPb","HYBRID Model #sqrt{s_{NN}}=5.02 TeV","t");
    leg->AddEntry("hPbPb","CA Declustering","t");
    leg->AddEntry("hPbPb","Inclusive","pl");
-   leg->AddEntry("hPbPb2","ln(Max K_T)>3","pl");
+   leg->AddEntry("hPbPb2","ln(Max KT)>3","pl");
    leg->AddEntry("hPbPb3","ln(Max KT)<3","pl");
    leg->Draw(); 
    TLine *l = new TLine(350,1,800,1);
