@@ -256,6 +256,7 @@ int main(int argc, char *argv[])
       PartonDR2=0;
       for (int i = 0; i < (int)PartonSJ2sPt->size(); i++){
           double Kt=(*PartonSJ2sPt)[i]*(*PartonDRs)[i];
+          if ((*PartonDRs)[i]>0.4) continue;
 	  if (Kt>PartonKt2) {
 	     PartonKt2=Kt;
              PartonDR2=(*PartonDRs)[i];
