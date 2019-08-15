@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
    for(int iE = 0; iE < EntryCount; iE++)
    {
       Tree->GetEntry(iE);
-
+      cout <<iE<<endl;
       if(PartonPt->size() == 0)   // WTF      
          continue;
 
@@ -207,7 +207,10 @@ int main(int argc, char *argv[])
       // Anti-kT algorithm performance
       AKKt1=0;
       AKKt2=0;
-      for (int i = 0; i < (int)SignalJetAKPT2s->size(); i++){
+      cout <<"gu"<<endl;
+      for (int i = 0; i < (int)(*SignalJetAKPT2s)[BestJetIndex].size(); i++){
+          cout <<"AK "<<i<<" "<<SignalJetAKPT2s->size()<<" "<<SignalJetAKDRs->size()<<endl;
+	  cout <<(*SignalJetAKPT2s)[BestJetIndex][i]<<endl;
           double Kt=(*SignalJetAKPT2s)[BestJetIndex][i]*(*SignalJetAKDRs)[BestJetIndex][i];
 	  if (Kt>AKKt2) AKKt2=Kt;
 	  if (Kt>AKKt1) {
@@ -219,7 +222,8 @@ int main(int argc, char *argv[])
       // CA algorithm performance
       CAKt1=0;
       CAKt2=0;
-      for (int i = 0; i < (int)SignalJetCAPT2s->size(); i++){
+      cout <<"gu"<<endl;
+      for (int i = 0; i < (int)(*SignalJetCAPT2s)[BestJetIndex].size(); i++){
           double Kt=(*SignalJetCAPT2s)[BestJetIndex][i]*(*SignalJetCADRs)[BestJetIndex][i];
 	  if (Kt>CAKt2) CAKt2=Kt;
 	  if (Kt>CAKt1) {
@@ -231,7 +235,8 @@ int main(int argc, char *argv[])
       // kT algorithm performance
       KTKt1=0;
       KTKt2=0;
-      for (int i = 0; i < (int)SignalJetKTPT2s->size(); i++){
+      cout <<"gu"<<endl;
+      for (int i = 0; i < (int)(*SignalJetKTPT2s)[BestJetIndex].size(); i++){
           double Kt=(*SignalJetKTPT2s)[BestJetIndex][i]*(*SignalJetKTDRs)[BestJetIndex][i];
 	  if (Kt>KTKt2) KTKt2=Kt;
 	  if (Kt>KTKt1) {
@@ -240,8 +245,8 @@ int main(int argc, char *argv[])
 	  }   
       }
       
-      // Groomed jet performance
-
+      // Groomed jet performance 
+      cout <<"gu"<<endl;
       SD1Kt1=(*SignalJetSD1DR12)[BestJetIndex]*(*SignalJetSD1Subjet2Pt)[BestJetIndex];
       SD2Kt1=(*SignalJetSD2DR12)[BestJetIndex]*(*SignalJetSD2Subjet2Pt)[BestJetIndex];
       SD3Kt1=(*SignalJetSD3DR12)[BestJetIndex]*(*SignalJetSD3Subjet2Pt)[BestJetIndex];
