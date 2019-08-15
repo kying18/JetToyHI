@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
    treeWriter Writer("JetTree");
 
    //Jet definition
-   double JetR                = cms.value<double>("-r", 0.4);
+   double JetR                = cmdline.value<double>("-r", 0.4);
    double ghostRapMax         = 6.0;
    double ghost_area          = 0.005;
    int    active_area_repeats = 1;
