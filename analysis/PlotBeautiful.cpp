@@ -32,22 +32,22 @@ int main(int argc, char *argv[])
    TTree *Tree = (TTree *)File.Get(CL.Get("Tree", "t").c_str());
 
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:KTDR1", Cut.c_str(),
-      Tag + "KT Declustering;KTDR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " KT Declustering;KT DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:AKDR1", Cut.c_str(),
-      Tag + "AK Declustering;AKDR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " AK Declustering;AK DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:CADR1", Cut.c_str(),
-      Tag + "CA Declustering;CADR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " CA Declustering;CA DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
 
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:SD1DR1", Cut.c_str(),
-      Tag + "(Z_{cut},#beta)=(0.1,0.0);SD1DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " (z_{cut},#beta) = (0.1,0.0);SD DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:SD2DR1", Cut.c_str(),
-      Tag + "(Z_{cut},#beta)=(0.5,1.5);SD2DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " (z_{cut},#beta) = (0.5,1.5);SD DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:SD3DR1", Cut.c_str(),
-      Tag + "(Z_{cut},#beta)=(0.25,0.0);SD3DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " (z_{cut},#beta) = (0.25,0.0);SD DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:SD4DR1", Cut.c_str(),
-      Tag + "(Z_{cut},#beta)=(0.15,-1.0);SD4DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " (z_{cut},#beta) = (0.15,-1.0);SD DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
    Add2DPlot(PdfFile, OutputBase, Tree, "PartonDR1:SD5DR1", Cut.c_str(),
-      Tag + "(Z_{cut},#beta)=(5.0,5.0);SD5DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+      Tag + " (z_{cut},#beta) = (5.0,5.0);SD DR;Parton DR", 100, 0, 0.5, 100, 0, 0.5);
 
    File.Close();
 
