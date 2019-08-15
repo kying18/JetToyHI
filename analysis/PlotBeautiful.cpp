@@ -21,15 +21,39 @@ int main(int argc, char *argv[])
 
    string Tag = CL.Get("Tag", ""); 
 
+   string Cut = CL.Get("Cut", ""); 
+
    PdfFileHelper PdfFile(CL.Get("Output", "Plots.pdf"));
-   PdfFile.AddTextPage("Tag");
+   PdfFile.AddTextPage(Tag);
 
    TFile File(CL.Get("Input").c_str());
 
    TTree *Tree = (TTree *)File.Get(CL.Get("Tree", "t").c_str());
 
-   Add2DPlot(PdfFile, Tree, "KTDR1:KTDR2", "",
-      Tag + ";KTDR1;KTDR2", 100, 0, 0.5, 100, 0, 0.5);
+   Add2DPlot(PdfFile, Tree, "KTDR1:PartonDR1", Cut.c_str(),
+      Tag + "KT Declustering;KTDR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+
+   Add2DPlot(PdfFile, Tree, "AKDR1:PartonDR1", Cut.c_str(),
+      Tag + "AK Declustering;AKDR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+
+   Add2DPlot(PdfFile, Tree, "CADR1:PartonDR1", Cut.c_str(),
+      Tag + "CA Declustering;CADR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+
+
+   Add2DPlot(PdfFile, Tree, "SD1DR1:PartonDR1", Cut.c_str(),
+      Tag + "(Z_{cut},#beta)=(0.1,0.0);SD1DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+
+   Add2DPlot(PdfFile, Tree, "SD2DR1:PartonDR1", Cut.c_str(),
+      Tag + "(Z_{cut},#beta)=(0.5,1.5);SD2DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+
+   Add2DPlot(PdfFile, Tree, "SD3DR1:PartonDR1", Cut.c_str(),
+      Tag + "(Z_{cut},#beta)=(0.25,0.0);SD3DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+
+   Add2DPlot(PdfFile, Tree, "SD4DR1:PartonDR1", Cut.c_str(),
+      Tag + "(Z_{cut},#beta)=(0.15,-1.0);SD4DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
+
+   Add2DPlot(PdfFile, Tree, "SD5DR1:PartonDR1", Cut.c_str(),
+      Tag + "(Z_{cut},#beta)=(5.0,5.0);SD5DR1;PartonDR1", 100, 0, 0.5, 100, 0, 0.5);
 
    File.Close();
 
