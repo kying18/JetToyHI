@@ -134,6 +134,8 @@ int main(int argc, char *argv[])
    double LeadingPartonPhi;
    double PartonKt1;
    double PartonKt2;
+   double PartonDR1;
+   double PartonDR2;
    double MatchedJetPt;
    double MatchedJetEta;
    double MatchedJetPhi;
@@ -146,6 +148,15 @@ int main(int argc, char *argv[])
    double SD1Kt1;
    double SD2Kt1;
    double SD3Kt1;
+   double AKDR1;
+   double AKDR2;
+   double CADR1;
+   double CADR2;
+   double KTDR1;
+   double KTDR2;
+   double SD1DR1;
+   double SD2DR1;
+   double SD3DR1;
    
    t->Branch("LeadingPartonPt" ,&LeadingPartonPt,  "LeadingPartonPt/D" );
    t->Branch("LeadingPartonEta",&LeadingPartonEta, "LeadingPartonEta/D");
@@ -164,13 +175,24 @@ int main(int argc, char *argv[])
    t->Branch("SD1Kt1"          ,&SD1Kt1,           "SD1Kt1/D");
    t->Branch("SD2Kt1"          ,&SD2Kt1,           "SD2Kt1/D");
    t->Branch("SD3Kt1"          ,&SD3Kt1,           "SD3Kt1/D");
+   t->Branch("PartonDR1"       ,&PartonDR1,        "PartonDR1/D");
+   t->Branch("PartonDR2"       ,&PartonDR2,        "PartonDR2/D");
+   t->Branch("AKDR1"           ,&AKDR1,            "AKDR1/D");
+   t->Branch("AKDR2"           ,&AKDR2,            "AKDR2/D");
+   t->Branch("CADR1"           ,&CADR1,            "CADR1/D");
+   t->Branch("CADR2"           ,&CADR2,            "CADR2/D");
+   t->Branch("KTDR1"           ,&KTDR1,            "KTDR1/D");
+   t->Branch("KTDR2"           ,&KTDR2,            "KTDR2/D");
+   t->Branch("SD1DR1"          ,&SD1DR1,           "SD1DR1/D");
+   t->Branch("SD2DR1"          ,&SD2DR1,           "SD2DR1/D");
+   t->Branch("SD3DR1"          ,&SD3DR1,           "SD3DR1/D");
 
 
    int EntryCount = Tree.GetEntries();
    for(int iE = 0; iE < EntryCount; iE++)
    {
       Tree.GetEntry(iE);
-      cout <<iE<<endl;
+      if (iE%1000==0) cout <<iE<<endl;
       if(PartonPt->size() == 0)   // WTF      
          continue;
 
@@ -202,12 +224,19 @@ int main(int argc, char *argv[])
       
       PartonKt1=0;
       PartonKt2=0;
+      PartonDR1=0;
+      PartonDR2=0;
       for (int i = 0; i < (int)PartonSJ2sPt->size(); i++){
           double Kt=(*PartonSJ2sPt)[i]*(*PartonDRs)[i];
-	  if (Kt>PartonKt2) PartonKt2=Kt;
+	  if (Kt>PartonKt2) {
+	     PartonKt2=Kt;
+             PartonDR2=(*PartonDRs)[i];
+          }
 	  if (Kt>PartonKt1) {
 	     PartonKt2=PartonKt1;
+	     PartonDR2=PartonDR1;
 	     PartonKt1=Kt;
+             PartonDR1=(*PartonDRs)[i];
 	  }   
       }
       
@@ -215,12 +244,19 @@ int main(int argc, char *argv[])
       // Anti-kT algorithm performance
       AKKt1=0;
       AKKt2=0;
+      AKDR1=0;
+      AKDR2=0;
       for (int i = 0; i < (int)(*SignalJetAKPT2s)[BestJetIndex].size(); i++){
           double Kt=(*SignalJetAKPT2s)[BestJetIndex][i]*(*SignalJetAKDRs)[BestJetIndex][i];
-	  if (Kt>AKKt2) AKKt2=Kt;
+	  if (Kt>AKKt2) {
+	     AKKt2=Kt;
+	     AKDR2=(*SignalJetAKDRs)[BestJetIndex][i];
+	  }
 	  if (Kt>AKKt1) {
 	     AKKt2=AKKt1;
+	     AKDR2=AKDR1;
 	     AKKt1=Kt;
+	     AKDR1=(*SignalJetAKDRs)[BestJetIndex][i];
 	  }   
       }
 
@@ -229,10 +265,15 @@ int main(int argc, char *argv[])
       CAKt2=0;
       for (int i = 0; i < (int)(*SignalJetCAPT2s)[BestJetIndex].size(); i++){
           double Kt=(*SignalJetCAPT2s)[BestJetIndex][i]*(*SignalJetCADRs)[BestJetIndex][i];
-	  if (Kt>CAKt2) CAKt2=Kt;
+	  if (Kt>CAKt2) {
+	     CAKt2=Kt;
+	     CADR2=(*SignalJetCADRs)[BestJetIndex][i];
+	  }
 	  if (Kt>CAKt1) {
 	     CAKt2=CAKt1;
+	     CADR2=CADR1;
 	     CAKt1=Kt;
+	     CADR1=(*SignalJetCADRs)[BestJetIndex][i];
 	  }   
       }
 
@@ -241,10 +282,15 @@ int main(int argc, char *argv[])
       KTKt2=0;
       for (int i = 0; i < (int)(*SignalJetKTPT2s)[BestJetIndex].size(); i++){
           double Kt=(*SignalJetKTPT2s)[BestJetIndex][i]*(*SignalJetKTDRs)[BestJetIndex][i];
-	  if (Kt>KTKt2) KTKt2=Kt;
+	  if (Kt>KTKt2) {
+	     KTKt2=Kt;
+	     KTDR2=(*SignalJetKTDRs)[BestJetIndex][i];
+	  }
 	  if (Kt>KTKt1) {
 	     KTKt2=KTKt1;
+	     KTDR2=KTDR1;
 	     KTKt1=Kt;
+	     KTDR1=(*SignalJetKTDRs)[BestJetIndex][i];
 	  }   
       }
       
@@ -252,6 +298,9 @@ int main(int argc, char *argv[])
       SD1Kt1=(*SignalJetSD1DR12)[BestJetIndex]*(*SignalJetSD1Subjet2Pt)[BestJetIndex];
       SD2Kt1=(*SignalJetSD2DR12)[BestJetIndex]*(*SignalJetSD2Subjet2Pt)[BestJetIndex];
       SD3Kt1=(*SignalJetSD3DR12)[BestJetIndex]*(*SignalJetSD3Subjet2Pt)[BestJetIndex];
+      SD1DR1=(*SignalJetSD1DR12)[BestJetIndex];
+      SD2DR1=(*SignalJetSD2DR12)[BestJetIndex];
+      SD3DR1=(*SignalJetSD3DR12)[BestJetIndex];
       
       t->Fill();
    }
