@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
    treeWriter Writer("JetTree");
 
    //Jet definition
-   double JetR                = 0.4;
+   double JetR                = cms.value<double>("-r", 0.4);
    double ghostRapMax         = 6.0;
    double ghost_area          = 0.005;
    int    active_area_repeats = 1;
@@ -209,11 +209,11 @@ int main(int argc, char *argv[])
       JCSD3Jewel.addVector(Tag + "SD3JewelSubjet1", CalculateSubjet1(SD3Jewel));
       JCSD3Jewel.addVector(Tag + "SD3JewelSubjet2", CalculateSubjet2(SD3Jewel));
 
-      softDropCounter CounterCA(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
-      softDropCounter CounterCAAK(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
-      softDropCounter CounterAK(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
-      softDropCounter CounterCAKT(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
-      softDropCounter CounterKT(0.0, 0.0, 0.4, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterCA(0.0, 0.0, JetR, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterCAAK(0.0, 0.0, JetR, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterAK(0.0, 0.0, JetR, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterCAKT(0.0, 0.0, JetR, 0.0);  //zcut, beta, jet R, r cut
+      softDropCounter CounterKT(0.0, 0.0, JetR, 0.0);  //zcut, beta, jet R, r cut
       CounterCA.setAlgorithm(0);
       CounterCAAK.setAlgorithm(-0.5);
       CounterAK.setAlgorithm(-1);
