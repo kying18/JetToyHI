@@ -196,7 +196,7 @@ public:
    std::vector<int> Status;
 public:
    EventList() { Clear(); }
-   ~EventList() { Clear(); }
+   ~EventList() { }
    void Clear()
    {
       Index.clear();
@@ -440,8 +440,10 @@ public:
 /// Class for reading events from a file (or stdin) in some simple format
 class EventSource
 {
-   public:
-      enum FileType {Pu14, HepMC2, HepMC3, Unknown};
+public:
+   enum FileType {Pu14, HepMC2, HepMC3, Unknown};
+
+   bool Recycle;
 
    EventSource(const std::string & filename, const std::string &type)
    {
@@ -455,6 +457,8 @@ class EventSource
          Type = FileType::HepMC3;
       else
          Type = FileType::Unknown;
+
+      Recycle = false;
    }
 
    /// set up an event stream from the corresponding file (in the PU14 format) 

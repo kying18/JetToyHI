@@ -59,7 +59,8 @@ bool EventSource::append_next_event_pu14(std::vector<fastjet::PseudoJet> & parti
    event_weight = 1;
 
    // read in particles
-   while (getline(*_stream, line)) {
+   while(getline(*_stream, line))
+   {
       // ignore blank lines and comment lines
       if (line.length() == 0 || line[0] == '#') continue;
 
