@@ -27,10 +27,16 @@ int main(int argc, char *argv[])
    TH1D HAllJetPT("HAllJetPT", Form ("%s Jet PT (Signal+Background)",title.c_str()), 200, 0, 1000);
    TH1D HAllJetSDPT("HAllJetSDPT", Form("%s Jet SD PT (Signal+Background)",title.c_str()), 200, 0, 1000);
    TH1D HZJetDPhi("HZJetDPhi", Form("%s All Hadrons;#Delta#Phi",title.c_str()), 100,0,3.1415926535897932384636);
+   TH1D HZJetDPhiSub("HZJetDPhiSub", Form("%s All Hadrons Subtracted;#Delta#Phi",title.c_str()), 100,0,3.1415926535897932384636);
    TH2D HZJetDPhiDEta("HZJetDPhiDEta", Form("%s All Hadrons;#Delta#Phi;#Delta#eta",title.c_str()), 100,0,3.1415926535897932384636,100,0,5);
+   TH2D HZJetDPhiDEtaSub("HZJetDPhiDEtaSub", Form("%s All Hadrons Subtracted;#Delta#Phi;#Delta#eta",title.c_str()), 100,0,3.1415926535897932384636,100,0,5);
 
    HZJetDPhi.SetStats(0);
    HZJetDPhiDEta.SetStats(0);
+   HZJetDPhiSub.SetStats(0);
+   HZJetDPhiDEtaSub.SetStats(0);
+   HZJetDPhi.GetYaxis()->SetRange(0,10);
+   HZJetDPhiSub.GetYaxis()->SetRange(0,10);
 
    int nZBosonSelected=0;
 
@@ -172,8 +178,11 @@ int main(int argc, char *argv[])
                }
                double dPhi = fabs(j.DeltaPhi(p));
                double dEta = fabs(j.Eta()-p.Eta());
-               HZJetDPhi.Fill(dPhi, W);
-               HZJetDPhiDEta.Fill(dPhi,dEta, W);
+               if (p.Pt()<1) continue;
+               if (W>0) HZJetDPhi.Fill(dPhi, W);
+               HZJetDPhiSub.Fill(dPhi, W);
+               if (W>0) HZJetDPhiDEta.Fill(dPhi,dEta, W);
+               HZJetDPhiDEtaSub.Fill(dPhi,dEta, W);
             }
 
          }
@@ -183,19 +192,26 @@ int main(int argc, char *argv[])
    }
 
    HZJetDPhi.Scale(1./(double)nZBosonSelected);
+   HZJetDPhiSub.Scale(1./(double)nZBosonSelected);
+   HZJetDPhiDEta.Scale(1./(double)nZBosonSelected);
+   HZJetDPhiDEtaSub.Scale(1./(double)nZBosonSelected);
    
    PdfFile.AddPlot(HJetPT, "", true);
    PdfFile.AddPlot(HAllJetPT, "", true);
    PdfFile.AddPlot(HJetSDPT, "", true);
    PdfFile.AddPlot(HAllJetSDPT, "", true);
-   PdfFile.AddPlot(HZJetDPhi, "",true);
-   PdfFile.AddPlot(HZJetDPhiDEta, "colz",true);
+   PdfFile.AddPlot(HZJetDPhi, "",false);
+   PdfFile.AddPlot(HZJetDPhiSub, "",false);
+   PdfFile.AddPlot(HZJetDPhiDEta, "colz",false);
+   PdfFile.AddPlot(HZJetDPhiDEtaSub, "colz",false);
 
    PdfFile.AddTimeStampPage();
    PdfFile.Close();
    outf->cd();
    HZJetDPhi.Write();
    HZJetDPhiDEta.Write();
+   HZJetDPhiSub.Write();
+   HZJetDPhiDEtaSub.Write();
    return 0;
 }
 
