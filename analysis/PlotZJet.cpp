@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
    HZJetDPhi.GetYaxis()->SetRange(0,10);
    HZJetDPhiSub.GetYaxis()->SetRange(0,10);
 
-   int nZBosonSelected=0;
+   double nZBosonSelected=0;
 
    for(string FileName : InputFileNames)
    {
@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
       vector<vector<double>> *SDAllConstituentPhi = nullptr;
       vector<vector<double>> *SDAllConstituentM = nullptr;
       vector<vector<double>> *SDAllConstituentIsHadron = nullptr;
+      vector<double> *EventWeight = nullptr;
 
       Tree->SetBranchAddress("SignalJet04JewelPt", &SignalJetPt);
       Tree->SetBranchAddress("SignalJet04SDJewelPt", &SignalJetSDPt);
@@ -136,6 +137,7 @@ int main(int argc, char *argv[])
       Tree->SetBranchAddress("AllJet04SDConstituentPhi", &SDAllConstituentPhi);
       Tree->SetBranchAddress("AllJet04SDConstituentMass", &SDAllConstituentM);
       Tree->SetBranchAddress("AllJet04SDConstituentIsHadron", &SDAllConstituentIsHadron);
+      Tree->SetBranchAddress("EventWeight", &EventWeight);
 
       int EntryCount = Tree->GetEntries();
       for(int iE = 0; iE < EntryCount; iE++)
@@ -148,12 +150,12 @@ int main(int argc, char *argv[])
          int NZBoson = LeadingZBosonPt->size();
          for(int iJ = 0; iJ < NZBoson; iJ++)
          {
-            HJetPT.Fill((*LeadingZBosonPt)[iJ]);
+            HJetPT.Fill((*LeadingZBosonPt)[iJ],(*EventWeight)[0]);
             if((*LeadingZBosonEta)[iJ] < -2 || (*LeadingZBosonEta)[iJ] > 2)
                continue;
             if((*LeadingZBosonPt)[iJ] < MinPT)
                continue;
-            nZBosonSelected++;
+            nZBosonSelected+=(*EventWeight)[0];
             TLorentzVector j;
             j.SetPtEtaPhiM( (*LeadingZBosonPt)[iJ], (*LeadingZBosonEta)[iJ], (*LeadingZBosonPhi)[iJ], 0);
             for(int iS = 0; iS < (*ParticlesPt).size(); iS++)
@@ -161,7 +163,7 @@ int main(int argc, char *argv[])
                if ((*isHadron)[iS]==0) continue;
                TLorentzVector p;
                p.SetPtEtaPhiM( (*ParticlesPt)[iS], (*ParticlesEta)[iS], (*ParticlesPhi)[iS], (*ParticlesM)[iS]);
-               double W = 1;
+               double W = 1*(*EventWeight)[0];
                if((*ParticlesPt)[iS] < 1e-5)
                {
                   for(int iD = 0; iD < (*DummyPt).size(); iD++)
@@ -171,14 +173,13 @@ int main(int argc, char *argv[])
                      if(p.DeltaR(d) < 1e-5)
                      {
                         p = d;
-                        W = -1;
+                        W = -1*(*EventWeight)[0];
                         break;
                      }
                   }
                }
                double dPhi = fabs(j.DeltaPhi(p));
                double dEta = fabs(j.Eta()-p.Eta());
-               if (p.Pt()<1) continue;
                if (W>0) HZJetDPhi.Fill(dPhi, W);
                HZJetDPhiSub.Fill(dPhi, W);
                if (W>0) HZJetDPhiDEta.Fill(dPhi,dEta, W);
