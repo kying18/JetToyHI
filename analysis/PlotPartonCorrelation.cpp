@@ -32,9 +32,13 @@ int main(int argc, char *argv[])
 
    int DoZG = CL.GetInt("DoZG", 0);
 
-   string TitleString = Form("%s  p_{T}^{jet} > %d GeV;Max ln(k_{T}), %s declustering;Max ln(k_{T}) partons", Title.c_str(), JetPTCut, Algo.c_str());
+//   string TitleString = Form("%s  p_{T}^{jet} > %d GeV;Max ln(k_{T}), %s declustering;Max ln(k_{T}) partons", Title.c_str(), JetPTCut, Algo.c_str());
+//   if(DoZG > 0)
+//      TitleString = Form("%s  p_{T}^{jet} > %d GeV;Groomed ln(k_{T});Max ln(k_{T}) partons", Title.c_str(), JetPTCut);
+
+   string TitleString = Form("%s;Max ln(k_{T}), %s declustering;Max ln(k_{T}) partons", Title.c_str(), Algo.c_str());
    if(DoZG > 0)
-      TitleString = Form("%s  p_{T}^{jet} > %d GeV;Groomed ln(k_{T});Max ln(k_{T}) partons", Title.c_str(), JetPTCut);
+      TitleString = Form("%s;Groomed ln(k_{T});Max ln(k_{T}) partons", Title.c_str());
 
    TH2D H("H", TitleString.c_str(),
       100, 0, 5, 100, -2, 6);
@@ -58,6 +62,7 @@ int main(int argc, char *argv[])
 
    H.SetStats(0);
    H.Draw("colz");
+   H.Scale(1./H.GetEntries()/5.*100/8.*100);
 
    TGraph G;
    G.SetPoint(0, -10, -10);
@@ -67,6 +72,7 @@ int main(int argc, char *argv[])
    // G.Draw("l");
 
    Canvas.SaveAs(Form("%s_%d_%s.png", OutputBase.c_str(), JetPTCut, Algo.c_str()));
+   Canvas.SaveAs(Form("%s_%d_%s.C", OutputBase.c_str(), JetPTCut, Algo.c_str()));
    Canvas.SaveAs(Form("%s_%d_%s.pdf", OutputBase.c_str(), JetPTCut, Algo.c_str()));
 
    return 0;
