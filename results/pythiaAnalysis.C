@@ -4,6 +4,8 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <iostream>
+#include "uti.h"
+
 
 using namespace std;
 
@@ -32,12 +34,22 @@ void pythiaAnalysis::Loop()
 // METHOD2: replace line
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
+   TString name = "SignalJetPt";
+   TString type = "pythia_thermal";
+   TString xLabel = "pT";
+   
+   Double_t BIN_MIN = 1.;
+   Double_t BIN_MAX = 0.;
+   Double_t BIN_NUM = 100.;
+
+
    if (fChain == 0) return;
-   TFile * outputfile = new TFile("pythiathermal10000spectra.root","recreate");
-   TH1D * h = new TH1D("SignalJetPt", "Signal Jet Pt (Pythia + thermal background)", 100, 0., 250.);
+   TFile * outputfile = new TFile("outputfiles/"+type+"/"+name+".root","recreate");
+   TH1D * h = new TH1D(name, name + " (" + type + ")", BIN_NUM, BIN_MIN, BIN_MAX);
+   // TCanvas* c = new TCanvas("c","",600,600);
    h->Sumw2();
-   h->GetXaxis()->SetTitle( "Count" );
-   h->GetYaxis()->SetTitle( "1/N dN/dpT (count/(GeV/c))" );
+   h->GetXaxis()->SetTitle( xLabel );
+   h->GetYaxis()->SetTitle( "log(1/N dN/d"+ xLabel + ")" );
 
    Long64_t nentries = fChain->GetEntriesFast();
 
@@ -47,6 +59,7 @@ void pythiaAnalysis::Loop()
       if (ientry < 0) break;
       // nb = fChain->GetEntry(jentry);   nbytes += nb;
       nb = b_SignalJetPt->GetEntry(ientry); nbytes += nb;
+      // nb = b_SignalJetSD2Pt->GetEntry(ientry); nbytes += nb;
       for (auto pt = SignalJetPt->begin(); pt < SignalJetPt->end(); pt++) {
          // cout << *pt << endl;
          h->Fill(*pt);
@@ -61,6 +74,9 @@ void pythiaAnalysis::Loop()
    Double_t factor = 1.;
    h->Scale(factor/h->Integral("width"));
 
+   // h->Draw("H"); gPad->SetLogy();
+   // c->SaveAs("plots/"+type+"/"+xLabel+".jpg");
+
    // when factor is 1, this is dN/dpT
    // can divide factor by total to get 1/N dN/dpT
    // confirmed that this is the same as the integral thing above
@@ -70,6 +86,11 @@ void pythiaAnalysis::Loop()
    outputfile->Write();
    outputfile->Close();
 }
+
+// to plot in log scale, use in root
+// root [1] SignalJetPt->Draw("H"); gPad->SetLogy();
+
+
 int main(int argc, char *argv[])
 {
    pythiaAnalysis * ana = new pythiaAnalysis();

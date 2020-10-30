@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "savehist.C": "cpp",
+        "pythiaAnalysis.C": "cpp",
+        "ostream": "cpp"
+    }
+}
