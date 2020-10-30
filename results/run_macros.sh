@@ -31,7 +31,7 @@ for branch in ${BRANCHES[@]}
 do 
     # echo $outf + " " + $branch
     # TYPE="test"
-    root -l -b -q "savehist.C+("\"$PYTHIA_INPUT_DATA\",\"$TEMP_OUT\",\"$branch\",\"$TYPE\"")"
+    root -l -b -q "savehist.C+("\"$TEMP_OUT\",\"$branch\"")"
 done
 # done
 # root -l -b -q "fitD.C+("\"$OUTPUT\"")"
