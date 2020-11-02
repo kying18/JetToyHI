@@ -35,7 +35,7 @@ void pythiaAnalysis::Loop()
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
    TString name = "SignalJetPt";
-   TString type = "pythia_thermal";
+   TString type = "temp";
    TString xLabel = "pT";
    
    Double_t BIN_MIN = 1.;
@@ -44,12 +44,12 @@ void pythiaAnalysis::Loop()
 
 
    if (fChain == 0) return;
-   TFile * outputfile = new TFile("outputfiles/"+type+"/"+name+".root","recreate");
+   TFile * outputfile = new TFile("outputfiles/test.root","recreate");
    TH1D * h = new TH1D(name, name + " (" + type + ")", BIN_NUM, BIN_MIN, BIN_MAX);
    // TCanvas* c = new TCanvas("c","",600,600);
    h->Sumw2();
    h->GetXaxis()->SetTitle( xLabel );
-   h->GetYaxis()->SetTitle( "log(1/N dN/d"+ xLabel + ")" );
+   h->GetYaxis()->SetTitle( "1/N dN/d"+ xLabel );
 
    Long64_t nentries = fChain->GetEntriesFast();
 
@@ -71,8 +71,10 @@ void pythiaAnalysis::Loop()
    // dN/dpT 1400
    // 1/N dN/dpT 0.045
    // this gives the 1/N dN/dpT scaling
-   Double_t factor = 1.;
-   h->Scale(factor/h->Integral("width"));
+
+   //TODO: undo this
+   // Double_t factor = 1.;
+   // h->Scale(factor/h->Integral("width"));
 
    // h->Draw("H"); gPad->SetLogy();
    // c->SaveAs("plots/"+type+"/"+xLabel+".jpg");
