@@ -169,12 +169,14 @@ int main(int argc, char *argv[])
       softDropGroomer SD3(0.25, 0.00, JetR);
       softDropGroomer SD4(0.15, -1.0, JetR);
       softDropGroomer SD5(5.00, 5.00, JetR);
+      softDropGroomer SD6(0.40, 0.00, JetR);
 
       jetCollection JCSD1(SD1.doGrooming(JCC));
       jetCollection JCSD2(SD2.doGrooming(JCC));
       jetCollection JCSD3(SD3.doGrooming(JCC));
       jetCollection JCSD4(SD4.doGrooming(JCC));
       jetCollection JCSD5(SD5.doGrooming(JCC));
+      jetCollection JCSD6(SD6.doGrooming(JCC));
       JCSD1.addVector(Tag + "SD1ZG",      SD1.getZgs());
       JCSD1.addVector(Tag + "SD1NBranch", SD1.getNDroppedSubjets());
       JCSD1.addVector(Tag + "SD1DR12",    SD1.getDR12());
@@ -200,12 +202,18 @@ int main(int argc, char *argv[])
       JCSD5.addVector(Tag + "SD5DR12",    SD5.getDR12());
       JCSD5.addVector(Tag + "SD5Subjet1", SD5.getSubjets1());
       JCSD5.addVector(Tag + "SD5Subjet2", SD5.getSubjets2());
+      JCSD6.addVector(Tag + "SD6ZG",      SD6.getZgs());
+      JCSD6.addVector(Tag + "SD6NBranch", SD6.getNDroppedSubjets());
+      JCSD6.addVector(Tag + "SD6DR12",    SD6.getDR12());
+      JCSD6.addVector(Tag + "SD6Subjet1", SD6.getSubjets1());
+      JCSD6.addVector(Tag + "SD6Subjet2", SD6.getSubjets2());
 
       jetCollection JCSD1Jewel(GetCorrectedJets(SD1.getConstituents(), ParticlesDummy));
       jetCollection JCSD2Jewel(GetCorrectedJets(SD2.getConstituents(), ParticlesDummy));
       jetCollection JCSD3Jewel(GetCorrectedJets(SD3.getConstituents(), ParticlesDummy));
       jetCollection JCSD4Jewel(GetCorrectedJets(SD4.getConstituents(), ParticlesDummy));
       jetCollection JCSD5Jewel(GetCorrectedJets(SD5.getConstituents(), ParticlesDummy));
+      jetCollection JCSD6Jewel(GetCorrectedJets(SD6.getConstituents(), ParticlesDummy));
       vector<pair<PseudoJet, PseudoJet>> SD1Jewel
          = GetCorrectedSubJets(SD1.getConstituents1(), SD1.getConstituents2(), ParticlesDummy);
       vector<pair<PseudoJet, PseudoJet>> SD2Jewel
@@ -216,6 +224,8 @@ int main(int argc, char *argv[])
          = GetCorrectedSubJets(SD4.getConstituents1(), SD4.getConstituents2(), ParticlesDummy);
       vector<pair<PseudoJet, PseudoJet>> SD5Jewel
          = GetCorrectedSubJets(SD5.getConstituents1(), SD5.getConstituents2(), ParticlesDummy);
+      vector<pair<PseudoJet, PseudoJet>> SD6Jewel
+         = GetCorrectedSubJets(SD6.getConstituents1(), SD6.getConstituents2(), ParticlesDummy);
       JCSD1Jewel.addVector(Tag + "SD1JewelZG",      CalculateZG(SD1Jewel));
       JCSD1Jewel.addVector(Tag + "SD1JewelDR12",    CalculateDR(SD1Jewel));
       JCSD1Jewel.addVector(Tag + "SD1JewelSubjet1", CalculateSubjet1(SD1Jewel));
@@ -236,6 +246,10 @@ int main(int argc, char *argv[])
       JCSD5Jewel.addVector(Tag + "SD5JewelDR12",    CalculateDR(SD5Jewel));
       JCSD5Jewel.addVector(Tag + "SD5JewelSubjet1", CalculateSubjet1(SD5Jewel));
       JCSD5Jewel.addVector(Tag + "SD5JewelSubjet2", CalculateSubjet2(SD5Jewel));
+      JCSD6Jewel.addVector(Tag + "SD6JewelZG",      CalculateZG(SD6Jewel));
+      JCSD6Jewel.addVector(Tag + "SD6JewelDR12",    CalculateDR(SD6Jewel));
+      JCSD6Jewel.addVector(Tag + "SD6JewelSubjet1", CalculateSubjet1(SD6Jewel));
+      JCSD6Jewel.addVector(Tag + "SD6JewelSubjet2", CalculateSubjet2(SD6Jewel));
 
       softDropCounter CounterCA(0.0, 0.0, JetR, 0.0);  //zcut, beta, jet R, r cut
       softDropCounter CounterCAAK(0.0, 0.0, JetR, 0.0);  //zcut, beta, jet R, r cut
@@ -311,11 +325,13 @@ int main(int argc, char *argv[])
       Writer.addCollection(Tag + "SD3", JCSD3);
       Writer.addCollection(Tag + "SD4", JCSD4);
       Writer.addCollection(Tag + "SD5", JCSD5);
+      Writer.addCollection(Tag + "SD6", JCSD6);
       Writer.addCollection(Tag + "SD1Jewel", JCSD1Jewel);
       Writer.addCollection(Tag + "SD2Jewel", JCSD2Jewel);
       Writer.addCollection(Tag + "SD3Jewel", JCSD3Jewel);
       Writer.addCollection(Tag + "SD4Jewel", JCSD4Jewel);
       Writer.addCollection(Tag + "SD5Jewel", JCSD5Jewel);
+      Writer.addCollection(Tag + "SD6Jewel", JCSD6Jewel);
 
       Writer.addCollection("EventWeight",      EventWeight);
 
