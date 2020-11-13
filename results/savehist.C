@@ -11,7 +11,7 @@ Double_t BIN_MIN;
 Double_t BIN_MAX;
 Double_t BIN_NUM = 100.;
 
-bool WRITE_TO_PDF = false;
+bool WRITE_TO_PDF = true;
 
 map<string, string> SOFT_DROP_PT_MAP = {
     {"", "SignalJetPt"},
@@ -51,27 +51,6 @@ TString getSoftDrop(TString branchLabel) {
     return sd;
 }
 
-int getMinXBin(TH1D* hist){
-    int minXbin = 1;
-    for (int i=1; i <= hist->GetNbinsX(); i++) {
-        if (hist->GetBinContent(i)) {
-            minXbin = i;
-            break;
-        }
-    }
-    return minXbin;
-}
-int getMaxXBin(TH1D* hist){
-    int maxXbin = hist->GetNbinsX();
-    for (int i=hist->GetNbinsX(); i >= 1; i--) {
-        if (hist->GetBinContent(i)) {
-            maxXbin = i;
-            break;
-        }
-    }
-    return maxXbin;
-}
-
 void savehist()
 {
     PdfFileHelper PdfFile("plots/7k_pt50cutoff/plotspt50_v2.pdf");
@@ -79,9 +58,17 @@ void savehist()
         PdfFile.AddTextPage("Pythia (+ thermal) spectra (pT > 50 GeV)");
     }
 
-    // TString branchLabels[7] = {"SignalJetPt", "SignalJetSD1DR12", "SignalJetSD1Pt", "SignalJetSD1ZG", "SignalJetSD2DR12", "SignalJetSD2Pt", "SignalJetSD2ZG"};
+    TString branchLabels[19] = {
+        "SignalJetPt", 
+        "SignalJetSD1DR12", "SignalJetSD1Pt", "SignalJetSD1ZG", 
+        "SignalJetSD2DR12", "SignalJetSD2Pt", "SignalJetSD2ZG",
+        "SignalJetSD3DR12", "SignalJetSD3Pt", "SignalJetSD3ZG",
+        "SignalJetSD4DR12", "SignalJetSD4Pt", "SignalJetSD4ZG",
+        "SignalJetSD5DR12", "SignalJetSD5Pt", "SignalJetSD5ZG",
+        "SignalJetSD6DR12", "SignalJetSD6Pt", "SignalJetSD6ZG",
+    };
     // TString branchLabels[4] = {"SignalJetSD1DR12", "SignalJetSD1ZG", "SignalJetSD2DR12", "SignalJetSD2ZG"};
-    TString branchLabels[1] = {"SignalJetSD5DR12"};
+    // TString branchLabels[1] = {"SignalJetSD6ZG"};
     for (auto branchLabel: branchLabels) {
 
         TString xLabel;
@@ -96,7 +83,7 @@ void savehist()
         } else if(branchLabel.Contains("ZG")) {
             xLabel = "z_{G}";
             BIN_MAX = 0.6;
-            BIN_MIN = 0;
+            BIN_MIN = 0.001;
         }
         
         TString PYTHIA_INPUT_DATA="/data/kying/lundPlaneResults/pythia_10000.root";
@@ -128,8 +115,11 @@ void savehist()
 
         TString sd = getSoftDrop(branchLabel);
 
-        THStack hs("hs",xLabel + " spectra" + (sd != "" ? " (" + sd + ")" : "") +  ";" + xLabel + ";1/N dN/d" + xLabel);
+        THStack* hs = new THStack("hs",xLabel + " spectra" + (sd != "" ? " (" + sd + ")" : "") +  ";" + xLabel + ";1/N dN/d" + xLabel);
 
+        int firstBin = 100; // we will decrease this
+        int lastBin = -1; // and increase this
+        float maxY = 0;
         for (int i=0; i < 4; i++) {
             TString inputdata = inputs[i];
             cout << "INPUT: " << inputdata << endl;
@@ -159,20 +149,22 @@ void savehist()
             Double_t factor = 1./total;
             h->Scale(factor, "width");
 
-            h->GetXaxis()->CenterTitle();
-            h->GetYaxis()->CenterTitle();
-
             // getting max bin thats filled
-            h->GetXaxis()->SetRange(getMinXBin(h), getMaxXBin(h));
-            h->GetXaxis()->SetTitleOffset(1.0);
-            h->GetYaxis()->SetTitleOffset(1.5);
+            // cout << getMaxXBin(h) << endl;
+            int minBinData = h->FindFirstBinAbove(0.1);
+            firstBin = minBinData < firstBin? minBinData : firstBin; // replacing firstBin with 
+            int maxBinData = h->FindLastBinAbove(0);
+            lastBin = maxBinData > lastBin? maxBinData : lastBin;
+            float dataMaxY = h->GetMaximum()*1.5;
+            cout << dataMaxY << endl;
+            maxY = dataMaxY > maxY? dataMaxY : maxY;
             h->SetMarkerStyle(20);
             h->SetMarkerSize(0.9);
             h->SetMarkerColor(colorIdx);
             h->SetLineColor(colorIdx);
             h->SetStats(0);
             // h->Draw("SAME");
-            hs.Add(h);
+            hs->Add(h);
             colorIdx+=1;
 
             TString legendText;
@@ -187,7 +179,12 @@ void savehist()
             }
             legend->AddEntry(h, legendText, "p");
         }
-        hs.Draw("nostack");
+        gStyle->SetHistTopMargin(0.25);
+        hs->Draw("nostackb");
+        cout << firstBin << endl;
+        hs->GetXaxis()->SetRange(firstBin-2, lastBin+2);
+        // cout << maxY << endl;
+        hs->Draw("nostackb");
         
 
         TPaveText *t = new TPaveText(-0.01, 0.0, 0.5, 0.09, "NB NDC");
@@ -215,8 +212,8 @@ void savehist()
         legend->Draw("");
 
         c->Update();
-        // c->SaveAs("plots/7k_pt50cutoff/" + branchLabel + "_v2.jpg");
-        c->SaveAs("plots/test.jpg");
+        c->SaveAs("plots/7k_pt50cutoff/" + branchLabel + "_v2.jpg");
+        // c->SaveAs("plots/test.jpg");
 
         if (WRITE_TO_PDF) {
             PdfFile.AddCanvas(c);
