@@ -144,6 +144,87 @@ int main(int argc, char *argv[])
             PartonSJ2 = List.GetSJ2s(HardShower);
          }
       }
+      
+      //---------------------------------------------------------------------------
+      //   find leading ZBoson
+      //---------------------------------------------------------------------------
+      int ZBosonIndex = -1;
+      int ePIndex=-1;
+      int eMIndex=-1;
+      for(int i = 0; i < (int)ParticlesSignal.size(); i++)
+      {
+         const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
+         if (ePIndex>=0&&eMIndex>=0) continue;
+         if(fabs(ID) != 13)
+            continue;
+         double AbsEta = fabs(ParticlesSignal[i].eta());
+         if(AbsEta > 2.5)
+            continue;
+         if (ID==13 && ePIndex<0) ePIndex=i;
+         if (ID==-13 && eMIndex<0) eMIndex=i;
+      }
+
+      vector<PseudoJet> LeadingZBoson;
+      if(ePIndex >= 0&&eMIndex>=0)
+      LeadingZBoson.push_back(ParticlesSignal[ePIndex]+ParticlesSignal[eMIndex]);
+      //---------------------------------------------------------------------------
+      //   opposite hemisphere selection
+      //---------------------------------------------------------------------------
+      vector<PseudoJet> HemisphereSignal, HemisphereAll;
+      if(ZBosonIndex >= 0)
+      {
+         double ZBosonPhi = ParticlesReal[ZBosonIndex].phi();
+         for(int i = 0; i < (int)ParticlesReal.size(); i++)
+         {
+            double ParticlePhi = ParticlesReal[i].phi();
+            double DPhi = ZBosonPhi - ParticlePhi;
+            if(DPhi < -M_PI)   DPhi = DPhi + 2 * M_PI;
+            if(DPhi > +M_PI)   DPhi = DPhi - 2 * M_PI;
+            if(DPhi > -M_PI / 2 && DPhi < M_PI / 2)
+               continue;
+            HemisphereAll.push_back(ParticlesReal[i]);
+         }
+         for(int i = 0; i < (int)ParticlesSignal.size(); i++)
+         {
+            double ParticlePhi = ParticlesSignal[i].phi();
+            double DPhi = ZBosonPhi - ParticlePhi;
+            if(DPhi < -M_PI)   DPhi = DPhi + 2 * M_PI;
+            if(DPhi > +M_PI)   DPhi = DPhi - 2 * M_PI;
+            if(DPhi > -M_PI / 2 && DPhi < M_PI / 2)
+               continue;
+            HemisphereSignal.push_back(ParticlesSignal[i]);
+         }
+      }
+
+      //---------------------------------------------------------------------------
+      //   Hemisphere clustering
+      //---------------------------------------------------------------------------
+      JetDefinition WTADefinition(antikt_algorithm, 10.0, WTA_pt_scheme);
+
+      if(HemisphereSignal.size() > 0)
+      {
+         // cout << HemisphereSignal << endl
+         ClusterSequence HemisphereSignalCluster(HemisphereSignal, WTADefinition);
+         jetCollection HemisphereJetSignal(HemisphereSignalCluster.exclusive_jets(1));
+         Writer.addCollection("HemisphereSignal", HemisphereJetSignal);
+      }
+      else
+      {
+         jetCollection HemisphereJetSignal();
+         Writer.addCollection("HemisphereSignal", HemisphereSignal);
+      }
+
+      if(HemisphereAll.size() > 0)
+      {
+         ClusterSequence HemisphereAllCluster(HemisphereAll, WTADefinition);
+         jetCollection HemisphereJetAll(HemisphereAllCluster.exclusive_jets(1));
+         Writer.addCollection("HemisphereAll",    HemisphereJetAll);
+      }
+      else
+      {
+         jetCollection HemisphereJetAll();
+         Writer.addCollection("HemisphereAll", HemisphereAll);
+      }
 
       //---------------------------------------------------------------------------
       //   Jet clustering
@@ -157,12 +238,13 @@ int main(int argc, char *argv[])
 
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
-      vector<int> JSD1Constituents;
-      vector<int> JSD2Constituents;
-      vector<int> JSD3Constituents;
-      vector<int> JSD4Constituents;
-      vector<int> JSD5Constituents;
-      vector<int> JSD6Constituents;
+      vector<vector<double>> JConstituentPt;
+      // vector<int> JSD1Constituents;
+      // vector<int> JSD2Constituents;
+      // vector<int> JSD3Constituents;
+      // vector<int> JSD4Constituents;
+      // vector<int> JSD5Constituents;
+      // vector<int> JSD6Constituents;
 
       csSubtractor Subtractor(JetR, 0, -1, 0.005, 6.0, 3.0);
       Subtractor.setInputParticles(ParticlesReal);
@@ -211,6 +293,11 @@ int main(int argc, char *argv[])
       
       for (auto J : JCC.getJet()) {
          JConstituents.push_back(J.constituents().size());
+         // vector<double> JCPt;
+         // for(int i = 0; i < (int)J.constituents().size(); i++) {
+         //    JCPt.push_back(J.constituents()[i].pt());
+         // }
+         // JConstituentPt.push_back(JCPt);
       }
 
       // JCSD1.addVector(Tag + "SD1NConstituent", JSD1Constituents);
