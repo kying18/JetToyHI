@@ -27,16 +27,51 @@ using namespace std;
 // so jet shape is like
 // the constituent momentum spectrum as a function of dR
 
-double get_r(double eta_track, double eta_jet, double phi_track, double phi_jet) {
-    // this is the reconstructed track's radial distance from jet axis (defined by eta_jet and phi_jet)
+double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
+    // this is the reconstructed track's radial distance from jet axis (defined by etaJet and phiJet)
     // tracks = charged particles
-    double deta = eta_track - eta_jet;
-    double dphi = phi_track - phi_jet;
+    double deta = etaTrack - etaJet;
+    // signal jet phi: SignalJet04Phi --> same # entries (range from 0 to 2pi)
+    // particles phi: ParticlesPhi --> same # of entries (range from 0 to 2pi)
+    double dphi = phiTrack - phiJet;
 
+    // cout << "dphi: " << dphi << endl;
     // dphi should be between -pi and pi
+    if (dphi < -M_PI) {
+        dphi = 2*M_PI - abs(dphi);  // if phi is < -pi, then 2pi - value of dphi is new
+    } else if (dphi > M_PI) {
+        dphi = - (2*M_PI - dphi); // if phi > pi, then 2pi - dphi is new value, but need to negate
+    }
+
     assert(dphi >= -M_PI && dphi <= M_PI);
 
     return sqrt(pow(deta,2) + pow(dphi, 2));
+}
+
+string getDataLabel(string fileName){
+    string dataLabel;
+    if (fileName.find("ZJet") != string::npos){
+        dataLabel = "#splitline{Data: pyquen ppZJet150}{(pp z-jet)}";
+        // dataLabel = " (pp ZJet) (Data: pyquen ppZJet150)";
+        // label = "pp150_1_zjet";
+        // legendLabel = "ppZJet150";
+    } else if (fileName.find("PbPbWide") != string::npos){
+        dataLabel = "#splitline{Data: pyquen PbPbWide150_0_10}{(PbPb wide dijet)}";
+        // dataLabel = " (PbPb wide) (Data: pyquen PbPbWide150_0_10)";
+        // label = "pbpb150_0_10_1_wide";
+        // legendLabel = "PbPbWide150";
+    } else if (fileName.find("PbPb") != string::npos){
+        dataLabel = "#splitline{Data: pyquen PbPb150_0_10}{(PbPb dijet)}";
+        // dataLabel = " (PbPb) (Data: pyquen PbPb150_0_10)";
+        // label = "pbpb150_0_10_1";
+        // legendLabel = "PbPb150";
+    } else {
+        dataLabel = "#splitline{Data: pyquen pp150}{(pp dijet)}";
+        // dataLabel = " (pp Dijet) (Data: pyquen pp150)";
+        // label = "pp150_1";
+        // legendLabel = "pp150";
+    }
+    return dataLabel;
 }
 
 int main(int argc, char *argv[]) {
@@ -81,46 +116,91 @@ int main(int argc, char *argv[]) {
     int entryCount = tree->GetEntries();  // N = N_event, this is per-event count
     cout << "n entries in tree: " << entryCount << endl;
 
-    int count = 0;
-    int particlesCount = 0;
-    for(int i = 0; i < entryCount; i++)  // iterating through every entry in the tree // TODO wait what is this
-    {
-        tree->GetEntry(i);
+    // TH2D * hist = new TH2D("hist", "Jet Shape;r;\\rho(r)", 6, 0, 0.3, 100, 1, -1);
+    double dr = 0.05;  // bins are [0, 0.05), [0.05, 0.10), [0.10, 0.15), ... [0.25, 0.30)
 
-        if(signalJetPt == nullptr)
-            continue;
+    Int_t n = 6;
+    Double_t x[n], y[n];
+    Double_t ex[n], ey[n];
 
-        int nJet = signalJetPt->size();
-        // cout << "jets: " << nJet << endl;
-        int nParticles = particlesEta->size();
-        // cout << "particles: " << nParticles << endl;
-        particlesCount += nParticles;
+    double r_a;
+    double r_b;
+    double rho;
+    for (int bin=0; bin < n; bin++){
+        r_a = bin * dr;
+        r_b = (bin + 1) * dr;
+        cout << "ra: " << r_a << ", rb: " << r_b << endl;
 
-        double rho = 0;
+        rho = 0;
 
-        for(int j = 0; j < nJet; j++) // iterating through each signal jet
-        {   
-            double sumTrackPts = 0;
-            // now we need to iterate through each track (charged particle) in the signal jet
-            for (int k = 0; k < nParticles; k++){
-                if ((*particlesPt)[k] > trackPtCut) { // only for particles > trackPtCut
-                    double r = get_r((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] )  // TODO factor in weights??
+        int count = 0;
+        int particlesCount = 0;
 
-                    // check track is in [r_a, r_b)
-                    if (r >= r_a && r < r_b) {
-                        // pT of track to var
-                        sumTrackPts += (*particlesPt)[k]; // todo maybe weights?
+        for(int i = 0; i < entryCount; i++)  // iterating through every entry in the tree // TODO wait what is this
+        {
+            tree->GetEntry(i);
+
+            if(signalJetPt == nullptr)
+                continue;
+
+            int nJet = signalJetPt->size();
+            // cout << "jets: " << nJet << endl;
+            int nParticles = particlesEta->size();
+            // cout << "particles: " << nParticles << endl;
+            count += nJet;
+            particlesCount += nParticles;
+
+            for(int j = 0; j < nJet; j++) // iterating through each signal jet
+            {   
+                double sumTrackPts = 0;
+                // now we need to iterate through each track (charged particle) in the signal jet
+                for (int k = 0; k < nParticles; k++){
+                    if ((*particlesPt)[k] > trackPtCut) { // only for particles > trackPtCut
+                        double r = getR((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] );  // TODO factor in weights??
+
+                        // check track is in [r_a, r_b)
+                        if (r >= r_a && r < r_b) {
+                            // pT of track to var
+                            sumTrackPts += (*particlesPt)[k]; // todo maybe weights?
+                        }
                     }
                 }
+                // divide summed pT of track by pT of jet and add to var
+                rho += sumTrackPts / (*signalJetPt)[j];
             }
-
-            // divide summed pT of track by pT of jet and add to var
-            rho += sumTrackPts / (*signalJetPt)[j];
-            rho *= 1/dr * 1/Njet;
         }
-
+        cout << "total jets count " << count  << endl;
+        cout << "total particles count " << particlesCount << endl;
+        rho *= 1/dr * 1/count;
+        cout << r_a + 0.5 * dr << " " << rho << endl;
+        // hist->Fill(r_a + 0.5 * dr, rho); // x, y
+        x[bin] = r_a + 0.5 * dr;
+        y[bin] = rho;
+        ex[bin] = 0.5 * dr;
+        ey[bin] = 0;
     }
-    cout << "total jets count " << count << endl;
-    cout << "total particles count " << particlesCount << endl;
+    TGraph* gr = new TGraphErrors(6, x, y, ex, ey);
+    TCanvas* cn = new TCanvas("cn","",1200,900);
+    cn->SetRightMargin(0.05);
+    string dataLabel = getDataLabel(fileName);
+
+
+    gr->SetTitle("Jet Shape;r;\\rho(r)");
+    gr->SetMarkerSize(2);
+    gr->Draw("APZ");
+    cn->SetLogy();
+    // hist->Draw("SCAT");
+    // hist->Draw("COLZ");
+
+    // draw text
+    TLatex *text = new TLatex();
+    text->SetTextSize(0.025);
+    string latexText = "#splitline{p_{T}^{track} > 1GeV, p_T^{jet} > 0GeV}{"+dataLabel+"}";
+    text->DrawLatexNDC(0.65, 0.82, latexText.c_str());
+
+
+    cn->Update();
+    cn->SaveAs("test.jpg");
+
     return 0;
 }
