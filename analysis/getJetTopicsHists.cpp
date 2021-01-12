@@ -8,14 +8,14 @@ using namespace std;
 #include "SetStyle.h"
 #include "uti.h"
 
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 0 -output ./150_1_1.9.2020/150_1_dijet_thstack_pt0
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 50 -output ./150_1_1.9.2020/150_1_dijet_thstack_pt50
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 100 -output ./150_1_1.9.2020/150_1_dijet_thstack_pt100
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 200 -output ./150_1_1.9.2020/150_1_dijet_thstack_pt200
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 0 -output ./150_1_1.9.2020/150_1_pp_thstack_pt0
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 50 -output ./150_1_1.9.2020/150_1_pp_thstack_pt50
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 100 -output ./150_1_1.9.2020/150_1_pp_thstack_pt100
-// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 200 -output ./150_1_1.9.2020/150_1_pp_thstack_pt200
+./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 0 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt0
+./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 50 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt50
+./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 100 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt100
+./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 200 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt200
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 0 -output ./150_1_1.12.2020/150_1_pp_thstack_pt0
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 50 -output ./150_1_1.12.2020/150_1_pp_thstack_pt50
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 100 -output ./150_1_1.12.2020/150_1_pp_thstack_pt100
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 200 -output ./150_1_1.12.2020/150_1_pp_thstack_pt200
 
 int main(int argc, char *argv[])
 {
@@ -33,9 +33,9 @@ int main(int argc, char *argv[])
    vector<string> lines;
    lines.push_back("Pyquen data source location:");
    lines.push_back("/data/yjlee/pyquen/pp150/pp_1.pu14");
-   lines.push_back("/data/yjlee/pyquen/ppZJet150/pp_1.pu14");
-//    lines.push_back("/data/yjlee/pyquen/PbPb150_0_10/PbPb_0_10_1.pu14");
-//    lines.push_back("/data/yjlee/pyquen/PbPbWide150_0_10/PbPbWide_0_10_1.pu14");
+//    lines.push_back("/data/yjlee/pyquen/ppZJet150/pp_1.pu14");
+   lines.push_back("/data/yjlee/pyquen/PbPb150_0_10/PbPb_0_10_1.pu14");
+   lines.push_back("/data/yjlee/pyquen/PbPbWide150_0_10/PbPbWide_0_10_1.pu14");
    PdfFile.AddTextPage(lines, 0.16, 0.6, 0.03);
 
 
@@ -150,6 +150,8 @@ int main(int argc, char *argv[])
             // TCanvas* c = new TCanvas("c","",1200,900);
             h->GetYaxis()->SetTitleOffset(1.6);
             h->Sumw2();
+            cout << "Entry count " << EntryCount << ", Hist count " << h->GetEntries() << endl;
+            h->Scale(1./h->GetEntries(), "width");
             // h->Scale(1./EntryCount, "width");
             h->SetMarkerStyle(20);
             h->SetMarkerSize(0.9);
@@ -201,31 +203,32 @@ int main(int argc, char *argv[])
    }
 
     TCanvas* cn = new TCanvas("cn","",1200,900);
-    int yMaxN = hNStack->GetMaximum();
-    if (yMaxN < 35) {
-        hNStack->SetMaximum(3*yMaxN);
-    }
+    // int yMaxN = hNStack->GetMaximum();
+    // if (yMaxN < 35) {
+    //     hNStack->SetMaximum(3*yMaxN);
+    // }
     hNStack->Draw("nostackb");
     legend->SetTextSize(0.028);
     legend->SetFillColor(0);
     legend->SetBorderSize(1);
     legend->Draw("");
-    cn->Update();
+    cn->SetLogy();
     cn->SaveAs((TString) (OutputBase + "nstack.jpg"));
     PdfFile.AddCanvas(cn);
 
     TCanvas* cpt = new TCanvas("cpt","",1200,900);
-    int yMaxPT = hPTStack->GetMaximum();
+    // int yMaxPT = hPTStack->GetMaximum();
     // cout << yMaxPT << endl;
-    if (yMaxPT < 35) {
-        hNStack->SetMaximum(3*yMaxPT);
-    }
-    hPTStack->SetMaximum(max(60, yMaxPT));
+    // if (yMaxPT < 35) {
+    //     hNStack->SetMaximum(3*yMaxPT);
+    // }
+    // hPTStack->SetMaximum(max(60, yMaxPT));
     hPTStack->Draw("nostackb");
     legend->SetTextSize(0.028);
     legend->SetFillColor(0);
     legend->SetBorderSize(1);
     legend->Draw("");
+    cpt->SetLogy();
     cpt->Update();
     cpt->SaveAs((TString) (OutputBase + "ptstack.jpg"));
     PdfFile.AddCanvas(cpt);
