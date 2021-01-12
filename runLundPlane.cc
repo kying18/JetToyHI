@@ -14,7 +14,6 @@
 #include "PU14/CmdLine.hh"
 #include "PU14/PU14.hh"
 #include "PU14/HepPID/ParticleIDMethods.hh"
-
 #include "include/extraInfo.hh"
 #include "include/jetCollection.hh"
 #include "include/csSubtractor.hh"
@@ -68,6 +67,7 @@ int main(int argc, char *argv[])
    GhostedAreaSpec ghost_spec(ghostRapMax, active_area_repeats, ghost_area);
    AreaDefinition Area = AreaDefinition(active_area, ghost_spec);
    JetDefinition Definition(antikt_algorithm, JetR);
+   JetDefinition WTADefinition(antikt_algorithm, 10.0, WTA_pt_scheme);
 
    Selector JetSelector = SelectorAbsRapMax(3.0);
 
@@ -155,18 +155,35 @@ int main(int argc, char *argv[])
       {
          const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
          if (ePIndex>=0&&eMIndex>=0) continue;
-         if(fabs(ID) != 13)
+         if(fabs(ID) != 13) {
             continue;
+         }
          double AbsEta = fabs(ParticlesSignal[i].eta());
          if(AbsEta > 2.5)
             continue;
+         cout << "found muon" << endl;
          if (ID==13 && ePIndex<0) ePIndex=i;
          if (ID==-13 && eMIndex<0) eMIndex=i;
       }
 
+      for(int i = 0; i < (int)ParticlesReal.size(); i++)
+      {
+         const int &ID = ParticlesReal[i].user_info<PU14>().pdg_id();
+         if(fabs(ID) == 23) {
+            cout << "found a Z!! (real)" << endl;
+         }
+         if (ID == 23 && ZBosonIndex < 0) {
+            ZBosonIndex = i;
+         } else if (ID == 23 && ZBosonIndex >= 0) {
+            cout << "More than one Z boson!!" << endl;
+         }
+      }
+      // cout << "Z boson index " << ZBosonIndex << endl;
+
       vector<PseudoJet> LeadingZBoson;
       if(ePIndex >= 0&&eMIndex>=0)
       LeadingZBoson.push_back(ParticlesSignal[ePIndex]+ParticlesSignal[eMIndex]);
+      // if(ZBosonIndex >= 0)LeadingZBoson.push_back
       //---------------------------------------------------------------------------
       //   opposite hemisphere selection
       //---------------------------------------------------------------------------
@@ -199,31 +216,59 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------------
       //   Hemisphere clustering
       //---------------------------------------------------------------------------
-      JetDefinition WTADefinition(antikt_algorithm, 10.0, WTA_pt_scheme);
+      // jetCollection HSignalJC, HAllJC;
+      vector<int> JHSignalConstituents;
+      vector<int> JHAllConstituents;
 
       if(HemisphereSignal.size() > 0)
       {
          // cout << HemisphereSignal << endl
+         cout << "hemisphere signal" << endl;
          ClusterSequence HemisphereSignalCluster(HemisphereSignal, WTADefinition);
          jetCollection HemisphereJetSignal(HemisphereSignalCluster.exclusive_jets(1));
+         // HSignalJC = jetCollection(HemisphereSignalCluster.exclusive_jets(1));
          Writer.addCollection("HemisphereSignal", HemisphereJetSignal);
+
+         for (auto J : HemisphereJetSignal.getJet()) {
+            JHSignalConstituents.push_back(J.constituents().size());
+         }
+
+         HemisphereJetSignal.addVector("HemisphereSignalNConstituent", JHSignalConstituents);
       }
       else
       {
+      //    cout << "no hemisphere signal" << endl;
          jetCollection HemisphereJetSignal();
          Writer.addCollection("HemisphereSignal", HemisphereSignal);
+
+         // for (auto J : HemisphereJetSignal.getJet()) {
+         //    JHSignalConstituents.push_back(J.constituents().size());
+         // }
       }
 
       if(HemisphereAll.size() > 0)
       {
+         cout << "hemisphere all" << endl;
          ClusterSequence HemisphereAllCluster(HemisphereAll, WTADefinition);
+         // HAllJC = jetCollection(HemisphereAllCluster.exclusive_jets(1));
          jetCollection HemisphereJetAll(HemisphereAllCluster.exclusive_jets(1));
-         Writer.addCollection("HemisphereAll",    HemisphereJetAll);
+         Writer.addCollection("HemisphereAll", HemisphereJetAll);
+
+         for (auto J : HemisphereJetAll.getJet()) {
+            JHAllConstituents.push_back(J.constituents().size());
+         }
+
+         HemisphereJetAll.addVector("HemisphereAllNConstituent", JHAllConstituents);
       }
       else
       {
+         // cout << "no hemisphere all" << endl;
          jetCollection HemisphereJetAll();
          Writer.addCollection("HemisphereAll", HemisphereAll);
+
+         // for (auto J : HemisphereJetAll.getJet()) {
+         //    JHAllConstituents.push_back(J.constituents().size());
+         // }
       }
 
       //---------------------------------------------------------------------------
@@ -238,7 +283,8 @@ int main(int argc, char *argv[])
 
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
-      vector<vector<double>> JConstituentPt;
+      // vector<vector<double>> JConstituentPt;
+      
       // vector<int> JSD1Constituents;
       // vector<int> JSD2Constituents;
       // vector<int> JSD3Constituents;
@@ -284,6 +330,15 @@ int main(int argc, char *argv[])
       //    JSD4Constituents,
       //    JSD5Constituents,
       //    JSD6Constituents
+      // };
+      // array<jetCollection,3> jetCollections = {
+      //    JCC, 
+      //    HSignalJC,
+      //    HAllJC};
+      // array<vector<int>,5> multiplicityVectors = {
+      //    JConstituents,
+      //    JHSignalConstituents,
+      //    JHAllConstituents
       // };
       // for (int i=0; i<jetCollections.size(); i++){
       //    for (auto J : jetCollections[i].getJet()) {
