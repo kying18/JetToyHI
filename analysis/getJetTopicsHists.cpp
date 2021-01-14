@@ -8,10 +8,10 @@ using namespace std;
 #include "SetStyle.h"
 #include "uti.h"
 
-./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 0 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt0
-./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 50 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt50
-./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 100 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt100
-./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 200 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt200
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 0 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt0
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 50 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt50
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 100 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt100
+// ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/PbPbWide150_0_10_1.root,/data/kying/EMMIResults/PbPb150_0_10_1.root" -minpt 200 -output ./150_1_1.12.2020/150_1_dijet_thstack_pt200
 // ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 0 -output ./150_1_1.12.2020/150_1_pp_thstack_pt0
 // ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 50 -output ./150_1_1.12.2020/150_1_pp_thstack_pt50
 // ./getJetTopicHists.exe -input "/data/kying/EMMIResults/pp150.root,/data/kying/EMMIResults/ppZJet150.root" -minpt 100 -output ./150_1_1.12.2020/150_1_pp_thstack_pt100
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
 
     // stuff for the output csv
-    ofstream outFile("./150_1_histograms.csv", ios_base::app);
+    ofstream outFile("./150_1_histograms_pt" + to_string((int) MinPT) + ".csv", ios_base::app);
     ostream_iterator<std::string> output_iterator(outFile, "\n");
 
     THStack* hNStack = new THStack("hNStack","Constituent Multiplicity (pyquen dijet samples);Constituent Multiplicity;1/N dN/d Constituent Multiplicity");
@@ -136,6 +136,23 @@ int main(int argc, char *argv[])
             }
         }
 
+        std::vector<double> v; 
+        std::vector<double> v_error;
+        for (int i = 0; i < HJetN->GetNbinsX(); i++) {
+            // cout << "line: " << HJetN->GetBinContent(i + 1) << ", " << HJetN->GetBinContent(i + 1) * HJetN->GetEntries() << endl;
+            v.push_back(HJetN->GetBinContent(i + 1)); 
+            v_error.push_back(HJetN->GetBinError(i + 1));
+        }
+
+        // put csv lines in csv
+        // copy(v.begin(), v.end(), output_iterator);
+        outFile << label << ",";
+        for (const auto &e : v) outFile << e << ",";
+        outFile << endl;
+        outFile << label << "_error" << ",";
+        for (const auto &e : v_error) outFile << e << ",";
+        outFile << endl;
+
         TH1D* hists[2] = {HJetN, HJetPT};
         // TH1D* hists[1] = {HJetN};
         for (int i=0; i < 2; i++) {
@@ -174,29 +191,12 @@ int main(int argc, char *argv[])
 
         TCanvas* cscatter = new TCanvas("cscatter", "", 1200, 900);
 
+        // cscatter->SetLogy();
+        h2->Scale(1./h2->GetEntries(), "width");
         h2->Draw("COLZ");
         cscatter->Update();
         cscatter->SaveAs((TString) (OutputBase + label + "scatter.jpg"));
         PdfFile.AddCanvas(cscatter);
-
-        std::vector<double> v; 
-        std::vector<double> v_error;
-        for (int i = 0; i < HJetN->GetNbinsX(); i++) {
-            v.push_back(HJetN->GetBinContent(i + 1)); 
-            v_error.push_back(HJetN->GetBinError(i + 1));
-        }
-
-        // put csv lines in csv
-        // copy(v.begin(), v.end(), output_iterator);
-        outFile << label << ",";
-        for (const auto &e : v) outFile << e << ",";
-        outFile << endl;
-        outFile << label << ",";
-        for (const auto &e : v_error) outFile << e << ",";
-        outFile << endl;
-
-        // PdfFile.AddPlot(HJetN, "", true);
-        // PdfFile.AddPlot(HJetPT, "", true);
 
         File.Close();
         
