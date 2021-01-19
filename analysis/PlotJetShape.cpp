@@ -10,6 +10,10 @@ using namespace std;
 #include "uti.h"
 #include <math.h>
 
+// g++ PlotJetShape.cpp $(root-config --cflags --libs) -O2 -o "plotJetShape.exe"
+// ./plotJetShape.exe -input "/data/kying/EMMIResults/pp150.root"
+
+
 // tracks are charged particles
 // use particleseta, particlesphi, signaljeteta, signaljetphi
 // dphi needs to be between -pi and pi
@@ -151,8 +155,9 @@ int main(int argc, char *argv[]) {
             particlesCount += nParticles;
 
             for(int j = 0; j < nJet; j++) // iterating through each signal jet
-            {   
+            {
                 double sumTrackPts = 0;
+                
                 // now we need to iterate through each track (charged particle) in the signal jet
                 for (int k = 0; k < nParticles; k++){
                     if ((*particlesPt)[k] > trackPtCut) { // only for particles > trackPtCut
@@ -169,8 +174,8 @@ int main(int argc, char *argv[]) {
                 rho += sumTrackPts / (*signalJetPt)[j];
             }
         }
-        cout << "total jets count " << count  << endl;
-        cout << "total particles count " << particlesCount << endl;
+        // cout << "total jets count " << count  << endl;
+        // cout << "total particles count " << particlesCount << endl;
         rho *= 1/dr * 1/count;
         cout << r_a + 0.5 * dr << " " << rho << endl;
         // hist->Fill(r_a + 0.5 * dr, rho); // x, y
@@ -186,8 +191,10 @@ int main(int argc, char *argv[]) {
 
 
     gr->SetTitle("Jet Shape;r;\\rho(r)");
-    gr->SetMarkerSize(2);
-    gr->Draw("APZ");
+    gr->SetMarkerSize(1.5);
+    gr->SetFillColor(4);
+    gr->SetFillStyle(3001);
+    gr->Draw("apz");  // apz2 for rectangle
     cn->SetLogy();
     // hist->Draw("SCAT");
     // hist->Draw("COLZ");

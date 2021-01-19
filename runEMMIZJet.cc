@@ -119,6 +119,15 @@ int main(int argc, char *argv[])
       //   sort out particles
       //---------------------------------------------------------------------------
 
+      for(int i = 0; i < (int)ParticlesMerged.size(); i++)
+      {
+         if(ParticlesMerged[i].perp() < 1e-5)
+         {
+            ParticlesMerged.erase(ParticlesMerged.begin() + i);
+            i = i - 1;
+         }
+      }
+
       vector<PseudoJet> ParticlesDummy, ParticlesReal;
       vector<PseudoJet> ParticlesBackground, ParticlesSignal;
       SelectorVertexNumber(-1).sift(ParticlesMerged, ParticlesDummy, ParticlesReal);
@@ -170,7 +179,7 @@ int main(int argc, char *argv[])
       //   find leading ZBoson
       //---------------------------------------------------------------------------
 
-      int ZBosonIndex = -1;
+      // int ZBosonIndex = -1;
       int ePIndex=-1;
       int eMIndex=-1;
       for(int i = 0; i < (int)ParticlesSignal.size(); i++)
@@ -198,9 +207,10 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------------
 
       vector<PseudoJet> HemisphereSignal, HemisphereAll;
-      if(ZBosonIndex >= 0)
+      if(LeadingZBoson.size() > 0)
       {
-         double ZBosonPhi = ParticlesReal[ZBosonIndex].phi();
+         // double ZBosonPhi = ParticlesReal[ZBosonIndex].phi();
+         double ZBosonPhi = LeadingZBoson[0].phi();
          for(int i = 0; i < (int)ParticlesReal.size(); i++)
          {
             double ParticlePhi = ParticlesReal[i].phi();

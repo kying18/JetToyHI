@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------------
       int ePIndex=-1;
       int eMIndex=-1;
+
       for(int i = 0; i < (int)ParticlesSignal.size(); i++)
       {
          const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
@@ -171,6 +172,8 @@ int main(int argc, char *argv[])
       //   opposite hemisphere selection
       //---------------------------------------------------------------------------
       vector<PseudoJet> HemisphereSignal, HemisphereAll;
+      vector<double> LeadingZPhi;
+   
       if(LeadingZBoson.size() > 0)  // rather than trying to get ZBosonIndex
       {
          // double ZBosonPhi = ParticlesReal[ZBosonIndex].phi();
@@ -202,6 +205,9 @@ int main(int argc, char *argv[])
 
             HemisphereSignal.push_back(ParticlesSignal[i]);
          }
+         LeadingZPhi.push_back(ZBosonPhi);
+      } else {
+         LeadingZPhi.push_back(-1);
       }
 
       //---------------------------------------------------------------------------
@@ -485,6 +491,7 @@ int main(int argc, char *argv[])
       Writer.addCollection(Tag + "SD6Jewel", JCSD6Jewel);
 
       Writer.addCollection("EventWeight",      EventWeight);
+      Writer.addCollection("LeadingZPhi", LeadingZPhi);
 
       if(DoPythiaShower)
       {

@@ -119,6 +119,15 @@ int main(int argc, char *argv[])
       //   sort out particles
       //---------------------------------------------------------------------------
 
+      for(int i = 0; i < (int)ParticlesMerged.size(); i++)
+      {
+         if(ParticlesMerged[i].perp() < 1e-5)
+         {
+            ParticlesMerged.erase(ParticlesMerged.begin() + i);
+            i = i - 1;
+         }
+      }
+
       vector<PseudoJet> ParticlesDummy, ParticlesReal;
       vector<PseudoJet> ParticlesBackground, ParticlesSignal;
       SelectorVertexNumber(-1).sift(ParticlesMerged, ParticlesDummy, ParticlesReal);
