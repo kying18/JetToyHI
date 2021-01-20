@@ -52,30 +52,31 @@ double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
     return sqrt(pow(deta,2) + pow(dphi, 2));
 }
 
-string getDataLabel(string fileName){
+tuple<string, string> getDataLabel(string fileName){
     string dataLabel;
+    string label;
     if (fileName.find("ZJet") != string::npos){
         dataLabel = "#splitline{Data: pyquen ppZJet150}{(pp z-jet)}";
         // dataLabel = " (pp ZJet) (Data: pyquen ppZJet150)";
-        // label = "pp150_1_zjet";
+        label = "pp150_1_zjet";
         // legendLabel = "ppZJet150";
     } else if (fileName.find("PbPbWide") != string::npos){
         dataLabel = "#splitline{Data: pyquen PbPbWide150_0_10}{(PbPb wide dijet)}";
         // dataLabel = " (PbPb wide) (Data: pyquen PbPbWide150_0_10)";
-        // label = "pbpb150_0_10_1_wide";
+        label = "pbpb150_0_10_1_wide";
         // legendLabel = "PbPbWide150";
     } else if (fileName.find("PbPb") != string::npos){
         dataLabel = "#splitline{Data: pyquen PbPb150_0_10}{(PbPb dijet)}";
         // dataLabel = " (PbPb) (Data: pyquen PbPb150_0_10)";
-        // label = "pbpb150_0_10_1";
+        label = "pbpb150_0_10_1";
         // legendLabel = "PbPb150";
     } else {
         dataLabel = "#splitline{Data: pyquen pp150}{(pp dijet)}";
         // dataLabel = " (pp Dijet) (Data: pyquen pp150)";
-        // label = "pp150_1";
+        label = "pp150_1";
         // legendLabel = "pp150";
     }
-    return dataLabel;
+    return make_tuple(dataLabel, label);
 }
 
 int main(int argc, char *argv[]) {
@@ -139,6 +140,7 @@ int main(int argc, char *argv[]) {
 
         int count = 0;
         int particlesCount = 0;
+        double totalyerr = 0;
 
         for(int i = 0; i < entryCount; i++)  // iterating through every entry in the tree // TODO wait what is this
         {
@@ -151,53 +153,59 @@ int main(int argc, char *argv[]) {
             // cout << "jets: " << nJet << endl;
             int nParticles = particlesEta->size();
             // cout << "particles: " << nParticles << endl;
-            count += nJet;
             particlesCount += nParticles;
 
             for(int j = 0; j < nJet; j++) // iterating through each signal jet
             {
+                double yerr = 0;
                 double sumTrackPts = 0;
+                count += (*weight)[0];
                 
                 // now we need to iterate through each track (charged particle) in the signal jet
                 for (int k = 0; k < nParticles; k++){
                     if ((*particlesPt)[k] > trackPtCut) { // only for particles > trackPtCut
-                        double r = getR((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] );  // TODO factor in weights??
+                        double r = getR((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] ); 
 
                         // check track is in [r_a, r_b)
                         if (r >= r_a && r < r_b) {
                             // pT of track to var
-                            sumTrackPts += (*particlesPt)[k]; // todo maybe weights?
+                            sumTrackPts += (*particlesPt)[k]; 
+                            yerr += pow((*particlesPt)[k] * (*weight)[0], 2);
                         }
                     }
                 }
                 // divide summed pT of track by pT of jet and add to var
-                rho += sumTrackPts / (*signalJetPt)[j];
+                rho += (sumTrackPts / (*signalJetPt)[j]) * (*weight)[0];
+                yerr = sqrt(yerr) * (*weight)[0] / (*signalJetPt)[j];
+                totalyerr += yerr;
             }
         }
         // cout << "total jets count " << count  << endl;
         // cout << "total particles count " << particlesCount << endl;
         rho *= 1/dr * 1/count;
+        totalyerr = sqrt(totalyerr) * 1/dr * 1/count;
         cout << r_a + 0.5 * dr << " " << rho << endl;
         // hist->Fill(r_a + 0.5 * dr, rho); // x, y
         x[bin] = r_a + 0.5 * dr;
         y[bin] = rho;
         ex[bin] = 0.5 * dr;
-        ey[bin] = 0;
+        // cout << "y error: " << totalyerr << endl;
+        ey[bin] = totalyerr / 2;
     }
     TGraph* gr = new TGraphErrors(6, x, y, ex, ey);
-    TCanvas* cn = new TCanvas("cn","",1200,900);
+    TCanvas* cn = new TCanvas("cn","cn",1200,900);
+    cn->SetLogy(1);
     cn->SetRightMargin(0.05);
-    string dataLabel = getDataLabel(fileName);
+    string dataLabel, fileLabel;
+    tie(dataLabel, fileLabel) = getDataLabel(fileName);
 
 
     gr->SetTitle("Jet Shape;r;\\rho(r)");
-    gr->SetMarkerSize(1.5);
-    gr->SetFillColor(4);
+    gr->SetMarkerSize(2);
+    gr->SetFillColor(2);
     gr->SetFillStyle(3001);
-    gr->Draw("apz");  // apz2 for rectangle
-    cn->SetLogy();
-    // hist->Draw("SCAT");
-    // hist->Draw("COLZ");
+    gr->GetYaxis()->SetMoreLogLabels();
+    gr->Draw("2apz"); 
 
     // draw text
     TLatex *text = new TLatex();
@@ -207,7 +215,7 @@ int main(int argc, char *argv[]) {
 
 
     cn->Update();
-    cn->SaveAs("test.jpg");
+    cn->SaveAs(("./jetShapePlots/" +fileLabel + ".jpg").c_str());
 
     return 0;
 }
