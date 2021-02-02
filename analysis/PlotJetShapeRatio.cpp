@@ -100,14 +100,13 @@ int main(int argc, char *argv[]) {
     // Int_t n = 6;
     Int_t n = (int) ceil(maxR/dr);
     // cout << "n buckets: " << n << endl;
-    Double_t x[n], y[3][n];
-    Double_t ex[n], ey[3][n];
-    string legendLabels[3];
+    Double_t x[n], y[2][n];
+    Double_t ex[n], ey[2][n];
 
     double yMin = INFINITY;
     double yMax = -INFINITY;
 
-    for(int f=0; f < 3; f++) {  // TODO: hard coded that there would be 3 inputs
+    for(int f=0; f < 2; f++) {  // TODO: hard coded that there would be 2 inputs
         string folder = InputFileFolders[f];
         string dataLabel, fileLabel, legendLabel;
 
@@ -212,50 +211,39 @@ int main(int argc, char *argv[]) {
                 File.Close();
                 // cout << "rho: " << rho << " count: " <<  count << endl;
             }
-            // cout << "total jets count " << count  << endl;
-            // cout << "total particles count " << particlesCount << endl;
             rho *= 1/dr * 1/count;
-            // cout << "rho at end: " << rho << ", count at end: " << count << endl;
             totalyerr = sqrt(totalyerr) * 1/dr * 1/count;
             cout << r_a + 0.5 * dr << " " << rho << endl;
-            // hist->Fill(r_a + 0.5 * dr, rho); // x, y
             x[bin] = r_a + 0.5 * dr;
             ex[bin] = 0.5 * dr;
             y[f][bin] = rho;
-            // ey[f][bin] = totalyerr;
-            ey[f][bin] = 0;
+            ey[f][bin] = totalyerr;
         }
-        double currMin = *min_element(y[f], y[f]+n);
-        yMin = min(currMin, yMin);
-        double currMax = *max_element(y[f], y[f]+n);
-        yMax = max(currMax, yMax);
-        legendLabels[f] = legendLabel;
     }
 
-    cout << "y min: " << yMin << ", y max: " << yMax << endl;
-
-    for(int f=0; f < 3; f++) { 
-        TGraph* gr = new TGraphErrors(n, x, y[f], ex, ey[f]);
-
-        legend->AddEntry(gr, legendLabels[f].c_str(), "p");
-
-        gr->SetTitle("Jet Shape;r;\\rho(r)");
-        gr->SetMarkerSize(1.2);
-        gr->SetMarkerColor(plotColor);
-        gr->SetFillColor(plotColor);
-        // gr->SetFillStyle(3001);
-        gr->GetYaxis()->SetMoreLogLabels();
-        
-        gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
-        if (plotColor == 2) {
-            gr->Draw("2apz"); // draw axes if first graph that we draw
-        } else {
-            gr->Draw("2pz same"); // ow draw on top
-        }
-        cn->Update();
-
-        plotColor += 1;
+    Double_t ratio[n], ratioe[n];
+    for(int i=0; i < n; i++) {
+        ratio[i] = y[1][i] / y[0][i]; // pbpb / pp ratio
+        // ratioe[i] = ey[1][i] + ey[0][i];
+        ratioe[i] = 0;
+        // cout << "ratio: " << ratio[i] << ", r error: " << ratioe[i] << endl;
     }
+
+    TGraph* gr = new TGraphErrors(n, x, ratio, ex, ratioe);
+    // TGraph* gr = new TGraph(n, x, ratio);
+    gr->SetTitle("Jet Shape Ratio;r;\\rho(r)^{PbPb}/\\rho(r)^{pp}");
+    gr->SetMarkerSize(1.2);
+    gr->SetFillColor(plotColor);
+    // gr->SetFillStyle(3001);
+    gr->GetYaxis()->SetRangeUser(0.5, 1.5);
+    // gr->GetYaxis()->SetMoreLogLabels();
+    gr->Draw("2apz");
+
+    TLine *line = new TLine(0, 1.0, maxR+0.025, 1.0);
+    line->Draw();
+    
+    // gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
+    cn->Update();
 
     // draw text
     TLatex *text = new TLatex();
@@ -266,15 +254,15 @@ int main(int argc, char *argv[]) {
     text->DrawLatexNDC(0.15, 0.2, latexText.c_str());
     // mg->Draw("a");
 
-    legend->SetTextSize(0.025);
-    legend->SetFillColor(0);
-    legend->SetBorderSize(1);
-    legend->Draw("");
+    // legend->SetTextSize(0.025);
+    // legend->SetFillColor(0);
+    // legend->SetBorderSize(1);
+    // legend->Draw("");
 
-    cn->SetLogy(1);
+    // cn->SetLogy(1);
     cn->SetRightMargin(0.05);
     cn->Update();
-    cn->SaveAs(("./jetShapePlots/dijets_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
+    cn->SaveAs(("./jetShapePlots/pppbpbratio_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
 
     return 0;
 }
