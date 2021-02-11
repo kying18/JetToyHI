@@ -39,6 +39,17 @@ void DoJet(treeWriter &Writer, JetDefinition &Definition, AreaDefinition Area,
    vector<PseudoJet> &Particles, vector<PseudoJet> &Dummy,
    Selector &JetSelector, string Tag);
 
+vector<int> getConstituentVector(vector<vector<PseudoJet>> &constituents) {
+   vector<int> cVector(constituents.size());
+   for (int i=0; i<(int)constituents.size(); i++) {
+      cVector[i] = constituents[i].size();
+   }
+
+   return cVector;
+
+}
+
+
 int main(int argc, char *argv[])
 {
    auto start_time = chrono::steady_clock::now();
@@ -251,13 +262,6 @@ int main(int argc, char *argv[])
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
       // vector<vector<double>> JConstituentPt;
-      
-      // vector<int> JSD1Constituents;
-      // vector<int> JSD2Constituents;
-      // vector<int> JSD3Constituents;
-      // vector<int> JSD4Constituents;
-      // vector<int> JSD5Constituents;
-      // vector<int> JSD6Constituents;
 
       csSubtractor Subtractor(JetR, 0, -1, 0.005, 6.0, 3.0);
       Subtractor.setInputParticles(ParticlesReal);
@@ -281,37 +285,19 @@ int main(int argc, char *argv[])
       jetCollection JCSD5(SD5.doGrooming(JCC));
       jetCollection JCSD6(SD6.doGrooming(JCC));
 
-      // Getting constituent multiplicities
-      // array<jetCollection,2> jetCollections = {JCC, JCSD1};
-      // array<vector<int>,2> multiplicityVectors = {
-      //    JConstituents,
-      //    JSD1Constituents
-      // };
+      vector<vector<PseudoJet>> ConstituentsSD1 = SD1.getConstituents();
+      vector<vector<PseudoJet>> ConstituentsSD2 = SD2.getConstituents();
+      vector<vector<PseudoJet>> ConstituentsSD3 = SD3.getConstituents();
+      vector<vector<PseudoJet>> ConstituentsSD4 = SD4.getConstituents();
+      vector<vector<PseudoJet>> ConstituentsSD5 = SD5.getConstituents();
+      vector<vector<PseudoJet>> ConstituentsSD6 = SD6.getConstituents();
 
-      // array<jetCollection,7> jetCollections = {JCC, JCSD1, JCSD2, JCSD3, JCSD4, JCSD5, JCSD6};
-      // array<vector<int>,7> multiplicityVectors = {
-      //    JConstituents, 
-      //    JSD1Constituents,
-      //    JSD2Constituents,
-      //    JSD3Constituents,
-      //    JSD4Constituents,
-      //    JSD5Constituents,
-      //    JSD6Constituents
-      // };
-      // array<jetCollection,3> jetCollections = {
-      //    JCC, 
-      //    HSignalJC,
-      //    HAllJC};
-      // array<vector<int>,5> multiplicityVectors = {
-      //    JConstituents,
-      //    JHSignalConstituents,
-      //    JHAllConstituents
-      // };
-      // for (int i=0; i<jetCollections.size(); i++){
-      //    for (auto J : jetCollections[i].getJet()) {
-      //       multiplicityVectors[i].push_back(J.constituents().size());
-      //    }
-      // }
+      vector<int> JSD1Constituents = getConstituentVector(ConstituentsSD1);
+      vector<int> JSD2Constituents = getConstituentVector(ConstituentsSD2);
+      vector<int> JSD3Constituents = getConstituentVector(ConstituentsSD3);
+      vector<int> JSD4Constituents = getConstituentVector(ConstituentsSD4);
+      vector<int> JSD5Constituents = getConstituentVector(ConstituentsSD5);
+      vector<int> JSD6Constituents = getConstituentVector(ConstituentsSD6);
       
       for (auto J : JCC.getJet()) {
          JConstituents.push_back(J.constituents().size());
@@ -322,42 +308,42 @@ int main(int argc, char *argv[])
          // JConstituentPt.push_back(JCPt);
       }
 
-      // JCSD1.addVector(Tag + "SD1NConstituent", JSD1Constituents);
+      JCSD1.addVector(Tag + "SD1NConstituent", JSD1Constituents);
       JCSD1.addVector(Tag + "SD1ZG",      SD1.getZgs());
       JCSD1.addVector(Tag + "SD1NBranch", SD1.getNDroppedSubjets());
       JCSD1.addVector(Tag + "SD1DR12",    SD1.getDR12());
       JCSD1.addVector(Tag + "SD1Subjet1", SD1.getSubjets1());
       JCSD1.addVector(Tag + "SD1Subjet2", SD1.getSubjets2());
 
-      // JCSD2.addVector(Tag + "SD2NConstituent", JSD2Constituents);
+      JCSD2.addVector(Tag + "SD2NConstituent", JSD2Constituents);
       JCSD2.addVector(Tag + "SD2ZG",      SD2.getZgs());
       JCSD2.addVector(Tag + "SD2NBranch", SD2.getNDroppedSubjets());
       JCSD2.addVector(Tag + "SD2DR12",    SD2.getDR12());
       JCSD2.addVector(Tag + "SD2Subjet1", SD2.getSubjets1());
       JCSD2.addVector(Tag + "SD2Subjet2", SD2.getSubjets2());
 
-      // JCSD3.addVector(Tag + "SD3NConstituent", JSD3Constituents);
+      JCSD3.addVector(Tag + "SD3NConstituent", JSD3Constituents);
       JCSD3.addVector(Tag + "SD3ZG",      SD3.getZgs());
       JCSD3.addVector(Tag + "SD3NBranch", SD3.getNDroppedSubjets());
       JCSD3.addVector(Tag + "SD3DR12",    SD3.getDR12());
       JCSD3.addVector(Tag + "SD3Subjet1", SD3.getSubjets1());
       JCSD3.addVector(Tag + "SD3Subjet2", SD3.getSubjets2());
 
-      // JCSD4.addVector(Tag + "SD4NConstituent", JSD4Constituents);
+      JCSD4.addVector(Tag + "SD4NConstituent", JSD4Constituents);
       JCSD4.addVector(Tag + "SD4ZG",      SD4.getZgs());
       JCSD4.addVector(Tag + "SD4NBranch", SD4.getNDroppedSubjets());
       JCSD4.addVector(Tag + "SD4DR12",    SD4.getDR12());
       JCSD4.addVector(Tag + "SD4Subjet1", SD4.getSubjets1());
       JCSD4.addVector(Tag + "SD4Subjet2", SD4.getSubjets2());
       
-      // JCSD5.addVector(Tag + "SD5NConstituent", JSD5Constituents);
+      JCSD5.addVector(Tag + "SD5NConstituent", JSD5Constituents);
       JCSD5.addVector(Tag + "SD5ZG",      SD5.getZgs());
       JCSD5.addVector(Tag + "SD5NBranch", SD5.getNDroppedSubjets());
       JCSD5.addVector(Tag + "SD5DR12",    SD5.getDR12());
       JCSD5.addVector(Tag + "SD5Subjet1", SD5.getSubjets1());
       JCSD5.addVector(Tag + "SD5Subjet2", SD5.getSubjets2());
 
-      // JCSD6.addVector(Tag + "SD6NConstituent", JSD6Constituents);
+      JCSD6.addVector(Tag + "SD6NConstituent", JSD6Constituents);
       JCSD6.addVector(Tag + "SD6ZG",      SD6.getZgs());
       JCSD6.addVector(Tag + "SD6NBranch", SD6.getNDroppedSubjets());
       JCSD6.addVector(Tag + "SD6DR12",    SD6.getDR12());
