@@ -11,8 +11,8 @@ using namespace std;
 #include "uti.h"
 #include <math.h>
 
-// g++ PlotJetShape.cpp $(root-config --cflags --libs) -O2 -o "plotJetShape.exe"
-// ./plotJetShape.exe -input "/data/kying/EMMIResults/pp150"
+// g++ PlotJetShapeRatio.cpp $(root-config --cflags --libs) -O2 -o "plotJetShapeRatio.exe"
+// ./plotJetShapeRatio.exe -input "/data/kying/EMMIResults/pp150,/data/kying/EMMIResults/PbPb150_0_10,/data/kying/EMMIResults/PbPbWide150_0_10"
 
 
 // tracks are charged particles
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 
     // TMultiGraph* mg = new TMultiGraph();
     TCanvas* cn = new TCanvas("cn","cn",1200,900);
-    TLegend* legend = new TLegend(0.7,0.7,0.9,0.85);
+    TLegend* legend = new TLegend(0.7,0.8,0.95,0.9);
     // TLegend* legend = new TLegend(0.1, 0.1, 0.3, 0.3);
 
     int plotColor = 2;
@@ -100,13 +100,20 @@ int main(int argc, char *argv[]) {
     // Int_t n = 6;
     Int_t n = (int) ceil(maxR/dr);
     // cout << "n buckets: " << n << endl;
-    Double_t x[n], y[2][n];
-    Double_t ex[n], ey[2][n];
+    Double_t x[n], y[3][n];
+    Double_t ex[n], ey[3][n];
+
+    // hard coded data from https://twiki.cern.ch/twiki/pub/CMSPublic/PhysicsResultsHIN12002/DataPoint.txt
+    // centrality 0-10%
+    double xData[6] = {0.025, 0.075, 0.125, 0.175, 0.225, 0.275};
+    double yData[6] = {1.022, 0.959, 0.862, 0.960, 1.209, 1.357};
+    double exData[6] = {0.025, 0.025, 0.025, 0.025, 0.025, 0.025};
+    double eyData[6] = {0.004, 0.007, 0.009, 0.013, 0.022, 0.041};
 
     double yMin = INFINITY;
     double yMax = -INFINITY;
 
-    for(int f=0; f < 2; f++) {  // TODO: hard coded that there would be 2 inputs
+    for(int f=0; f < 3; f++) {  // TODO: hard coded that there would be 2 inputs
         string folder = InputFileFolders[f];
         string dataLabel, fileLabel, legendLabel;
 
@@ -191,7 +198,7 @@ int main(int argc, char *argv[]) {
                         
                         // now we need to iterate through each track (charged particle) in the signal jet
                         for (int k = 0; k < nParticles; k++){
-                            if ((*particlesPt)[k] > trackPtCut) { // only for particles > trackPtCut
+                            if ((*particlesPt)[k] > trackPtCut && abs((*signalJetEta)[j]) > 0.3 && abs((*signalJetEta)[j]) < 2) { // only for particles > trackPtCut
                                 double r = getR((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] ); 
 
                                 // check track is in [r_a, r_b)
@@ -221,23 +228,56 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    Double_t ratio[n], ratioe[n];
+    Double_t ratio[n], ratioe[n], ratioWide[n];
     for(int i=0; i < n; i++) {
         ratio[i] = y[1][i] / y[0][i]; // pbpb / pp ratio
+        ratioWide[i] = y[2][i] / y[0][i]; // pbpb wide / pp ratio
         // ratioe[i] = ey[1][i] + ey[0][i];
         ratioe[i] = 0;
         // cout << "ratio: " << ratio[i] << ", r error: " << ratioe[i] << endl;
     }
 
     TGraph* gr = new TGraphErrors(n, x, ratio, ex, ratioe);
+    legend->AddEntry(gr, "Pyquen (PbPb / pp)", "p");
     // TGraph* gr = new TGraph(n, x, ratio);
     gr->SetTitle("Jet Shape Ratio;r;\\rho(r)^{PbPb}/\\rho(r)^{pp}");
     gr->SetMarkerSize(1.2);
+    gr->SetMarkerColor(plotColor);
     gr->SetFillColor(plotColor);
     // gr->SetFillStyle(3001);
-    gr->GetYaxis()->SetRangeUser(0.5, 1.5);
+    gr->GetYaxis()->SetRangeUser(0.45, 1.55);
     // gr->GetYaxis()->SetMoreLogLabels();
     gr->Draw("2apz");
+
+    plotColor += 1;
+
+    gr = new TGraphErrors(n, x, ratioWide, ex, ratioe);
+    legend->AddEntry(gr, "Pyquen (PbPb Wide / pp)", "p");
+    // TGraph* gr = new TGraph(n, x, ratio);
+    gr->SetTitle("Jet Shape Ratio;r;\\rho(r)^{PbPb}/\\rho(r)^{pp}");
+    gr->SetMarkerSize(1.2);
+    gr->SetMarkerColor(plotColor);
+    gr->SetFillColor(plotColor);
+    // gr->SetFillStyle(3001);
+    gr->GetYaxis()->SetRangeUser(0.45, 1.55);
+    // gr->GetYaxis()->SetMoreLogLabels();
+    gr->Draw("2pz same");
+
+    // plot data
+    gr = new TGraphErrors(n, xData, yData, exData, ratioe);
+
+    legend->AddEntry(gr, "Data", "p");
+
+    gr->SetTitle("Jet Shape Ratio;r;\\rho(r)^{PbPb}/\\rho(r)^{pp}");
+    gr->SetMarkerSize(1.2);
+    gr->SetMarkerColor(38);
+    gr->SetFillColor(38);
+    // gr->SetFillStyle(3001);
+    // gr->GetYaxis()->SetMoreLogLabels();
+    
+    // gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
+    gr->Draw("2pz same"); // ow draw on top
+    cn->Update();
 
     TLine *line = new TLine(0, 1.0, maxR+0.025, 1.0);
     line->Draw();
@@ -248,21 +288,21 @@ int main(int argc, char *argv[]) {
     // draw text
     TLatex *text = new TLatex();
     text->SetTextSize(0.025);
-    string latexText = "p_{T}^{track} > " + to_string((int)trackPtCut) + "GeV, p_{T}^{jet} > " + to_string((int)minPT) + "GeV";
+    string latexText = "#splitline{p_{T}^{track} > " + to_string((int)trackPtCut) + "GeV, p_{T}^{jet} > " + to_string((int)minPT) + "GeV}{0.3 < | #eta^{jet} | < 2 }"; //0.3 < |\\eta^{jet}| < 2
     // string latexText = "#splitline{p_{T}^{track} > 1GeV, p_T^{jet} > 0GeV}{"+dataLabel+"}";
     // text->DrawLatexNDC(0.65, 0.82, latexText.c_str());
     text->DrawLatexNDC(0.15, 0.2, latexText.c_str());
     // mg->Draw("a");
 
-    // legend->SetTextSize(0.025);
-    // legend->SetFillColor(0);
-    // legend->SetBorderSize(1);
-    // legend->Draw("");
+    legend->SetTextSize(0.025);
+    legend->SetFillColor(0);
+    legend->SetBorderSize(1);
+    legend->Draw("");
 
     // cn->SetLogy(1);
     cn->SetRightMargin(0.05);
     cn->Update();
-    cn->SaveAs(("./jetShapePlots/pppbpbratio_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
+    cn->SaveAs(("./jetShapePlots/pppbpbratio_withdata_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
 
     return 0;
 }

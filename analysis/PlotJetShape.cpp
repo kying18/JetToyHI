@@ -12,7 +12,7 @@ using namespace std;
 #include <math.h>
 
 // g++ PlotJetShape.cpp $(root-config --cflags --libs) -O2 -o "plotJetShape.exe"
-// ./plotJetShape.exe -input "/data/kying/EMMIResults/pp150"
+// ./plotJetShape.exe -input "/data/kying/EMMIResults/pp150,/data/kying/EMMIResults/PbPb150_0_10,/data/kying/EMMIResults/PbPbWide150_0_10"
 
 
 // tracks are charged particles
@@ -104,8 +104,15 @@ int main(int argc, char *argv[]) {
     Double_t ex[n], ey[3][n];
     string legendLabels[3];
 
-    double yMin = INFINITY;
-    double yMax = -INFINITY;
+    // hard coded data from https://twiki.cern.ch/twiki/pub/CMSPublic/PhysicsResultsHIN12002/DataPoint.txt
+    // centrality 0-10%
+    double xData[6] = {0.025, 0.075, 0.125, 0.175, 0.225, 0.275};
+    double yData[6] = {12.636, 4.560, 1.318, 0.707, 0.486, 0.294};
+    double exData[6] = {0.025, 0.025, 0.025, 0.025, 0.025, 0.025};
+    double eyData[6] = {0.050, 0.028, 0.012, 0.009, 0.009, 0.009};
+
+    double yMin = *min_element(yData, yData+6);
+    double yMax = *max_element(yData, yData+6);
 
     for(int f=0; f < 3; f++) {  // TODO: hard coded that there would be 3 inputs
         string folder = InputFileFolders[f];
@@ -192,11 +199,11 @@ int main(int argc, char *argv[]) {
                         
                         // now we need to iterate through each track (charged particle) in the signal jet
                         for (int k = 0; k < nParticles; k++){
-                            if ((*particlesPt)[k] > trackPtCut) { // only for particles > trackPtCut
+                            if ((*particlesPt)[k] > trackPtCut && abs((*signalJetEta)[j]) > 0.3 && abs((*signalJetEta)[j]) < 2) { // only for particles > trackPtCut
                                 double r = getR((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] ); 
 
-                                // check track is in [r_a, r_b)
-                                if (r >= r_a && r < r_b) {
+                                // check track is in [r_a, r_b) 
+                                if (r >= r_a && r < r_b ) {
                                     // pT of track to var
                                     sumTrackPts += (*particlesPt)[k]; 
                                     yerr += pow((*particlesPt)[k] * (*weight)[0] / (*signalJetPt)[j], 2);
@@ -257,10 +264,27 @@ int main(int argc, char *argv[]) {
         plotColor += 1;
     }
 
+    // plot data
+    TGraph* gr = new TGraphErrors(n, xData, yData, exData, ey[1]);
+
+    legend->AddEntry(gr, "Data", "p");
+
+    gr->SetTitle("Jet Shape;r;\\rho(r)");
+    gr->SetMarkerSize(1.2);
+    gr->SetMarkerColor(38); 
+    gr->SetFillColor(38);
+    // gr->SetFillStyle(3001);
+    gr->GetYaxis()->SetMoreLogLabels();
+    
+    gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
+    gr->Draw("2pz same"); // ow draw on top
+    cn->Update();
+
     // draw text
     TLatex *text = new TLatex();
     text->SetTextSize(0.025);
-    string latexText = "p_{T}^{track} > " + to_string((int)trackPtCut) + "GeV, p_{T}^{jet} > " + to_string((int)minPT) + "GeV";
+    // Note to self.. if this label is not on the plot, then abs(eta) was just limited by > 0.3
+    string latexText = "#splitline{p_{T}^{track} > " + to_string((int)trackPtCut) + "GeV, p_{T}^{jet} > " + to_string((int)minPT) + "GeV}{0.3 < | #eta^{jet} | < 2 }"; //0.3 < |\\eta^{jet}| < 2
     // string latexText = "#splitline{p_{T}^{track} > 1GeV, p_T^{jet} > 0GeV}{"+dataLabel+"}";
     // text->DrawLatexNDC(0.65, 0.82, latexText.c_str());
     text->DrawLatexNDC(0.15, 0.2, latexText.c_str());
@@ -274,7 +298,7 @@ int main(int argc, char *argv[]) {
     cn->SetLogy(1);
     cn->SetRightMargin(0.05);
     cn->Update();
-    cn->SaveAs(("./jetShapePlots/dijets_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
+    cn->SaveAs(("./jetShapePlots/dijets_withdata_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
 
     return 0;
 }
