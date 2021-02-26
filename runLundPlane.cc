@@ -110,8 +110,10 @@ int main(int argc, char *argv[])
 
       vector<PseudoJet> ParticlesDummy, ParticlesReal;
       vector<PseudoJet> ParticlesBackground, ParticlesSignal;
+      vector<PseudoJet> ParticlesBackgroundAndTemp, ParticlesIntermediate;
       SelectorVertexNumber(-1).sift(ParticlesMerged, ParticlesDummy, ParticlesReal);
-      SelectorVertexNumber(0).sift(ParticlesReal, ParticlesSignal, ParticlesBackground);
+      SelectorVertexNumber(0).sift(ParticlesReal, ParticlesSignal, ParticlesBackgroundAndTemp);
+      SelectorVertexNumber(1).sift(ParticlesBackgroundAndTemp, ParticlesBackground, ParticlesIntermediate);
 
       for(int i = 0; i < (int)ParticlesDummy.size(); i++)
       {
@@ -155,6 +157,79 @@ int main(int argc, char *argv[])
             PartonSJ2 = List.GetSJ2s(HardShower);
          }
       }
+
+      //---------------------------------------------------------------------------
+      //   find leading photon
+      //---------------------------------------------------------------------------
+
+      int PhotonIndex = -1;
+      vector<double> Particle0PT, Particle0Phi;
+      // cout << ParticlesSignal[0].pt() << endl;
+      Particle0PT.push_back(ParticlesSignal[0].pt());
+      Particle0Phi.push_back(ParticlesSignal[0].phi());
+      for(int i = 0; i < (int)ParticlesSignal.size(); i++)
+      {
+         const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
+
+         if(ID != 22)
+            continue;
+
+
+         double AbsEta = fabs(ParticlesSignal[i].eta());
+         if(AbsEta > 2.5)
+            continue;
+
+         if(PhotonIndex < 0 || ParticlesSignal[PhotonIndex].perp() < ParticlesSignal[i].perp()) {
+            PhotonIndex = i;
+         }
+      }
+
+      vector<PseudoJet> LeadingPhoton;
+      if(PhotonIndex >= 0)
+         LeadingPhoton.push_back(ParticlesSignal[PhotonIndex]);
+
+      //---------------------------------------------------------------------------
+      //   opposite hemisphere selection
+      //---------------------------------------------------------------------------
+
+      vector<PseudoJet> HemisphereSignal, HemisphereAll;
+      vector<double> LeadingPhotonPhi, LeadingPhotonPt;
+
+      if(LeadingPhoton.size() > 0)
+      {
+         double PhotonPhi = LeadingPhoton[0].phi();
+         for(int i = 0; i < (int)ParticlesReal.size(); i++)
+         {
+            double ParticlePhi = ParticlesReal[i].phi();
+            double DPhi = PhotonPhi - ParticlePhi;
+
+            if(DPhi < -M_PI)   DPhi = DPhi + 2 * M_PI;
+            if(DPhi > +M_PI)   DPhi = DPhi - 2 * M_PI;
+
+            if(DPhi > -M_PI / 2 && DPhi < M_PI / 2)
+               continue;
+
+            HemisphereAll.push_back(ParticlesReal[i]);
+         }
+         for(int i = 0; i < (int)ParticlesSignal.size(); i++)
+         {
+            double ParticlePhi = ParticlesSignal[i].phi();
+            double DPhi = PhotonPhi - ParticlePhi;
+
+            if(DPhi < -M_PI)   DPhi = DPhi + 2 * M_PI;
+            if(DPhi > +M_PI)   DPhi = DPhi - 2 * M_PI;
+
+            if(DPhi > -M_PI / 2 && DPhi < M_PI / 2)
+               continue;
+
+            HemisphereSignal.push_back(ParticlesSignal[i]);
+         }
+         LeadingPhotonPhi.push_back(PhotonPhi);
+         LeadingPhotonPt.push_back(LeadingPhoton[0].pt());
+      } else {
+         LeadingPhotonPhi.push_back(-1);
+         LeadingPhotonPt.push_back(-1);
+      }
       
       //---------------------------------------------------------------------------
       //   find leading ZBoson
@@ -182,7 +257,7 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------------
       //   opposite hemisphere selection
       //---------------------------------------------------------------------------
-      vector<PseudoJet> HemisphereSignal, HemisphereAll;
+      // vector<PseudoJet> HemisphereSignal, HemisphereAll;
       vector<double> LeadingZPhi;
    
       if(LeadingZBoson.size() > 0)  // rather than trying to get ZBosonIndex
@@ -261,7 +336,7 @@ int main(int argc, char *argv[])
 
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
-      // vector<vector<double>> JConstituentPt;
+      vector<vector<double>> JConstituentPt;
 
       csSubtractor Subtractor(JetR, 0, -1, 0.005, 6.0, 3.0);
       Subtractor.setInputParticles(ParticlesReal);
@@ -301,11 +376,11 @@ int main(int argc, char *argv[])
       
       for (auto J : JCC.getJet()) {
          JConstituents.push_back(J.constituents().size());
-         // vector<double> JCPt;
-         // for(int i = 0; i < (int)J.constituents().size(); i++) {
-         //    JCPt.push_back(J.constituents()[i].pt());
-         // }
-         // JConstituentPt.push_back(JCPt);
+         vector<double> JCPt;
+         for(int i = 0; i < (int)J.constituents().size(); i++) {
+            JCPt.push_back(J.constituents()[i].pt());
+         }
+         JConstituentPt.push_back(JCPt);
       }
 
       JCSD1.addVector(Tag + "SD1NConstituent", JSD1Constituents);
@@ -409,6 +484,7 @@ int main(int argc, char *argv[])
       CounterCAKT.run(JCC, ParticlesDummy);
       CounterKT.run(JCC, ParticlesDummy);
       JCC.addVector(Tag + "NConstituent", JConstituents);
+      JCC.addVector(Tag + "ConstituentPt", JConstituentPt);
       JCC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
       JCC.addVector(Tag + "CADRs", CounterCA.GetDRs());
       JCC.addVector(Tag + "CAPT1s", CounterCA.GetPT1s());
@@ -478,6 +554,8 @@ int main(int argc, char *argv[])
 
       Writer.addCollection("EventWeight",      EventWeight);
       Writer.addCollection("LeadingZPhi", LeadingZPhi);
+      Writer.addCollection("LeadingPhotonPhi", LeadingPhotonPhi);
+      Writer.addCollection("LeadingPhotonPt", LeadingPhotonPt);
 
       if(DoPythiaShower)
       {
