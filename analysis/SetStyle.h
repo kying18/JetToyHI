@@ -952,12 +952,12 @@ std::vector<int> GetPrimaryColors()
 {
    std::vector<int> Colors;
 
-   Color.push_back(TColor::GetColor("#E74C3C"));
-   Color.push_back(TColor::GetColor("#3498DB"));
-   Color.push_back(TColor::GetColor("#F1C40F"));
-   Color.push_back(TColor::GetColor("#2ECC71"));
-   Color.push_back(TColor::GetColor("#7F7F7F"));
-   Color.push_back(TColor::GetColor("#8E44AD"));
+   Colors.push_back(TColor::GetColor("#E74C3C"));
+   Colors.push_back(TColor::GetColor("#3498DB"));
+   Colors.push_back(TColor::GetColor("#F1C40F"));
+   Colors.push_back(TColor::GetColor("#2ECC71"));
+   Colors.push_back(TColor::GetColor("#7F7F7F"));
+   Colors.push_back(TColor::GetColor("#8E44AD"));
 
    return Colors;
 }
