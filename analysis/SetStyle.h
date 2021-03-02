@@ -2,6 +2,7 @@
 #define SetStyle_h_ikdofqwjito3jgthyqiwko3jhigtyq2jghufolqjgthy
 
 #include <cstdlib>
+#include <vector>
 
 #include "TStyle.h"
 #include "TROOT.h"
@@ -33,6 +34,7 @@ void AddCMSPreliminary(double X = 0.15, double Y = 0.875, double Luminosity = -1
 void AddCMS(double X = 0.15, double Y = 0.875, double Luminosity = -1, double FontSize = 0.03);
 void AddCMSSimulation(double X = 0.15, double Y = 0.875, double Luminosity = -1, double FontSize = 0.03);
 void AddHeader(string AdditionalComment = "", bool Colored = false);
+std::vector<int> GetPrimaryColors();
 
 void SetThesisStyle()
 {
@@ -946,6 +948,19 @@ void AddHeader(string AdditionalComment, bool Colored)
    Latex.DrawLatex(0.01, 0.01, AdditionalComment.c_str());
 }
 
+std::vector<int> GetPrimaryColors()
+{
+   std::vector<int> Colors;
+
+   Color.push_back(TColor::GetColor("#E74C3C"));
+   Color.push_back(TColor::GetColor("#3498DB"));
+   Color.push_back(TColor::GetColor("#F1C40F"));
+   Color.push_back(TColor::GetColor("#2ECC71"));
+   Color.push_back(TColor::GetColor("#7F7F7F"));
+   Color.push_back(TColor::GetColor("#8E44AD"));
+
+   return Colors;
+}
 
 
 #endif
