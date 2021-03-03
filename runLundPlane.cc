@@ -109,18 +109,34 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------------
 
       vector<PseudoJet> ParticlesDummy, ParticlesReal;
-      vector<PseudoJet> ParticlesBackground, ParticlesSignal;
-      vector<PseudoJet> ParticlesBackgroundAndTemp, ParticlesIntermediate;
-      SelectorVertexNumber(-1).sift(ParticlesMerged, ParticlesDummy, ParticlesReal);
-      SelectorVertexNumber(0).sift(ParticlesReal, ParticlesSignal, ParticlesBackgroundAndTemp);
-      SelectorVertexNumber(1).sift(ParticlesBackgroundAndTemp, ParticlesBackground, ParticlesIntermediate);
-
-      for(int i = 0; i < (int)ParticlesDummy.size(); i++)
+      vector<PseudoJet> ParticlesSignal;
+      vector<PseudoJet> ParticlesIntermediate;
+      for(PseudoJet &P : ParticlesMerged)
       {
-         if(ParticlesDummy[i].perp() < 1e-5 && fabs(ParticlesDummy[i].pz()) > 2000)
+         int type = P.user_info<PU14>().vertex_number();
+         switch(type)
          {
-            ParticlesDummy.erase(ParticlesDummy.begin() + i);
-            i = i - 1;
+         case 1:  // this is background
+            // fill into ParticlesReal
+            ParticlesReal.push_back(P);
+            break;
+         case 0:  // this is signal
+            // fill into ParticlesReal
+            // fill into ParticlesSignal
+            ParticlesReal.push_back(P);
+            ParticlesSignal.push_back(P);
+            break;
+         case -1:   // this is dummy
+            // fill into ParticlesDummy
+            if (P.perp() < 1e-5 && fabs(P.pz()) > 2000) {
+               break;
+            }
+            ParticlesDummy.push_back(P);
+            break;
+         default:   // all other cases are intermediate particles
+            // fill into ParticlesIntermediate
+            ParticlesIntermediate.push_back(P);
+            break;
          }
       }
 
@@ -164,9 +180,6 @@ int main(int argc, char *argv[])
 
       int PhotonIndex = -1;
       vector<double> Particle0PT, Particle0Phi;
-      // cout << ParticlesSignal[0].pt() << endl;
-      Particle0PT.push_back(ParticlesSignal[0].pt());
-      Particle0Phi.push_back(ParticlesSignal[0].phi());
       for(int i = 0; i < (int)ParticlesSignal.size(); i++)
       {
          const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
@@ -337,6 +350,8 @@ int main(int argc, char *argv[])
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
       vector<vector<double>> JConstituentPt;
+      vector<vector<double>> px, py, pz;
+      vector<vector<double>> pid;
 
       csSubtractor Subtractor(JetR, 0, -1, 0.005, 6.0, 3.0);
       Subtractor.setInputParticles(ParticlesReal);
@@ -373,15 +388,34 @@ int main(int argc, char *argv[])
       vector<int> JSD4Constituents = getConstituentVector(ConstituentsSD4);
       vector<int> JSD5Constituents = getConstituentVector(ConstituentsSD5);
       vector<int> JSD6Constituents = getConstituentVector(ConstituentsSD6);
-      
+
       for (auto J : JCC.getJet()) {
          JConstituents.push_back(J.constituents().size());
          vector<double> JCPt;
+         vector<double> JCPx, JCPy, JCPz, JCPid;
          for(int i = 0; i < (int)J.constituents().size(); i++) {
             JCPt.push_back(J.constituents()[i].pt());
+            JCPx.push_back(J.constituents()[i].px());
+            JCPy.push_back(J.constituents()[i].py());
+            JCPz.push_back(J.constituents()[i].pz());
+            // JCPid.push_back(J.constituents()[i].E());
+            JCPid.push_back((double)J.constituents()[i].user_info<PU14>().pdg_id());
          }
          JConstituentPt.push_back(JCPt);
+         // JCPx.push_back(J.px());
+         // JCPy.push_back(J.py());
+         // JCPz.push_back(J.pz());
+         // // JCPid.push_back(J.E());
+         // JCPid.push_back(J.user_info<PU14>().pdg_id());
+         px.push_back(JCPx);
+         py.push_back(JCPy);
+         pz.push_back(JCPz);
+         pid.push_back(JCPid);
       }
+      // px.push_back(JCPx);
+      // py.push_back(JCPy);
+      // pz.push_back(JCPz);
+      // pid.push_back(JCPid);
 
       JCSD1.addVector(Tag + "SD1NConstituent", JSD1Constituents);
       JCSD1.addVector(Tag + "SD1ZG",      SD1.getZgs());
@@ -485,6 +519,14 @@ int main(int argc, char *argv[])
       CounterKT.run(JCC, ParticlesDummy);
       JCC.addVector(Tag + "NConstituent", JConstituents);
       JCC.addVector(Tag + "ConstituentPt", JConstituentPt);
+      // JCC.addVector(Tag + "Px", JCPx);
+      // JCC.addVector(Tag + "Py", JCPy);
+      // JCC.addVector(Tag + "Pz", JCPz);
+      // JCC.addVector(Tag + "Pid", JCPid);
+      JCC.addVector(Tag + "Px", px);
+      JCC.addVector(Tag + "Py", py);
+      JCC.addVector(Tag + "Pz", pz);
+      JCC.addVector(Tag + "Pid", pid);
       JCC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
       JCC.addVector(Tag + "CADRs", CounterCA.GetDRs());
       JCC.addVector(Tag + "CAPT1s", CounterCA.GetPT1s());
