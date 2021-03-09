@@ -53,7 +53,6 @@ int getColorIndex(double etaTrack, double etaJetLeading, double etaJetSubLeading
 
     if (-M_PI <= etaJetLeading && etaJetLeading <= M_PI && 0 <= phiJetLeading && phiJetLeading <= 2*M_PI) {
         double drLeading = getR(etaTrack, etaJetLeading, phiTrack, phiJetLeading);
-        cout << drLeading << endl;
         if (drLeading < 0.4) { return 2; }
     }
 
@@ -76,7 +75,7 @@ bool oppositeHemisphere(double particlePhi, double jetPhi) {
         }
         return false;
     }
-    // todo: what if there is no leading Z?
+    // todo: what if there is no leading particle?
     return false; // false for now.. don't count it
 }
 
@@ -113,6 +112,8 @@ int main(int argc, char *argv[])
     vector<double> *SignalJetEta = nullptr;
     vector <double> *LeadingZPhi = nullptr;
     vector <double> *LeadingPhotonPhi = nullptr;
+    vector <double> *LeadingPhotonEta = nullptr;
+    vector <double> *LeadingPhotonPt = nullptr;
     vector<double> *ParticlesPx = nullptr;
     vector<double> *ParticlesPy = nullptr;
     vector<double> *ParticlesPz = nullptr;
@@ -126,6 +127,8 @@ int main(int argc, char *argv[])
     Tree->SetBranchAddress("SignalJetEta", &SignalJetEta);
     Tree->SetBranchAddress("LeadingZPhi", &LeadingZPhi);
     Tree->SetBranchAddress("LeadingPhotonPhi", &LeadingPhotonPhi);
+    Tree->SetBranchAddress("LeadingPhotonEta", &LeadingPhotonEta);
+    Tree->SetBranchAddress("LeadingPhotonPt", &LeadingPhotonPt);
     Tree->SetBranchAddress("EventWeight", &Weight);
     Tree->SetBranchAddress("ParticlesEta", &ParticlesEta);
     Tree->SetBranchAddress("ParticlesPhi", &ParticlesPhi);
@@ -141,6 +144,8 @@ int main(int argc, char *argv[])
         if(SignalJetPt == nullptr)
             continue;
 
+        outFile << "################################" << " Event " << iE << " ################################" << endl;
+
         int NJet = SignalJetPt->size();
         int NParticles = ParticlesID->size();
 
@@ -154,8 +159,13 @@ int main(int argc, char *argv[])
         // iterate through the jets in the event to find the leading jets
         for(int iJ = 0; iJ < NJet; iJ++)
         {
+            cout << "leading photon phi: "<< (*LeadingPhotonPhi)[0] << ", eta: "<< (*LeadingPhotonEta)[iJ]<< ", pt: "<< (*LeadingPhotonPt)[0] << endl;
+            cout << "signal jet phi: "<< (*SignalJetPhi)[0] << ", signal jet eta: "<< (*SignalJetEta)[iJ] << endl;
+            
             // if(zJet && !oppositeHemisphere((*LeadingZPhi)[0], (*SignalJetPhi)[iJ])) continue; // if its a z jet and not in the opposite hemisphere according to leading z phi
             if(!oppositeHemisphere((*LeadingPhotonPhi)[0], (*SignalJetPhi)[iJ])) continue; // same logic but photons
+
+            cout << "signal jet pt: "<< (*SignalJetPt)[iJ] << endl;
 
             // now let's try to find the leading 2 jets! (we'll find leading 2 even tho there may just be 1.. or zjet/photon jet only needs 1)
             if ((*SignalJetPt)[iJ] > MaxPT) {
@@ -182,13 +192,17 @@ int main(int argc, char *argv[])
         if (MaxPTEventIndex > -1) {
             etaJetLeading = (*SignalJetEta)[MaxPTEventIndex];
             phiJetLeading = (*SignalJetPhi)[MaxPTEventIndex];
+            outFile << "######################" << " Leading Jet: Eta " << etaJetLeading << ", Phi " << phiJetLeading << " ######################" << endl;
         }
         if (MaxPTEventIndex2 > -1) {
             etaJetSubLeading = (*SignalJetEta)[MaxPTEventIndex2];
             phiJetSubLeading = (*SignalJetPhi)[MaxPTEventIndex2];
+            outFile << "######################" << " Subleading Jet: Eta " << etaJetSubLeading << ", Phi " << phiJetSubLeading << " ######################" << endl;
         }
 
-        cout << etaJetLeading << " " << phiJetLeading << " " << etaJetSubLeading << " " << phiJetSubLeading << " " << endl;
+    
+
+        // cout << etaJetLeading << " " << phiJetLeading << " " << etaJetSubLeading << " " << phiJetSubLeading << " " << endl;
 
         // aight now we gotta get all the particles
         //  find the dr value and color code

@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
 
    bool DoPythiaShower = cmdline.present("-pythiashower");
    bool DoSubtraction = cmdline.present("-subtraction");
+   string JetType = cmdline.value<string>("-type");
 
    cout << "will run on " << EventCount << " events" << endl;
 
@@ -179,34 +180,31 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------------
 
       int PhotonIndex = -1;
-      vector<double> Particle0PT, Particle0Phi;
       for(int i = 0; i < (int)ParticlesSignal.size(); i++)
       {
          const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
 
          if(ID != 22)
             continue;
-
-
-         double AbsEta = fabs(ParticlesSignal[i].eta());
-         if(AbsEta > 2.5)
-            continue;
-
          if(PhotonIndex < 0 || ParticlesSignal[PhotonIndex].perp() < ParticlesSignal[i].perp()) {
             PhotonIndex = i;
          }
       }
 
       vector<PseudoJet> LeadingPhoton;
-      if(PhotonIndex >= 0)
+      if(PhotonIndex >= 0) {
+         // if the eta > 2.5 then just skip the event
+         double AbsEta = fabs(ParticlesSignal[PhotonIndex].eta());
+         if(AbsEta > 2.5 && JetType == "photonjet") continue;
          LeadingPhoton.push_back(ParticlesSignal[PhotonIndex]);
+      }
 
       //---------------------------------------------------------------------------
       //   opposite hemisphere selection
       //---------------------------------------------------------------------------
 
       vector<PseudoJet> HemisphereSignal, HemisphereAll;
-      vector<double> LeadingPhotonPhi, LeadingPhotonPt;
+      vector<double> LeadingPhotonPhi, LeadingPhotonPt, LeadingPhotonEta;
 
       if(LeadingPhoton.size() > 0)
       {
@@ -239,9 +237,11 @@ int main(int argc, char *argv[])
          }
          LeadingPhotonPhi.push_back(PhotonPhi);
          LeadingPhotonPt.push_back(LeadingPhoton[0].pt());
+         LeadingPhotonEta.push_back(LeadingPhoton[0].eta());
       } else {
          LeadingPhotonPhi.push_back(-1);
          LeadingPhotonPt.push_back(-1);
+         LeadingPhotonEta.push_back(-1);
       }
       
       //---------------------------------------------------------------------------
@@ -257,16 +257,17 @@ int main(int argc, char *argv[])
          if(fabs(ID) != 13) {
             continue;
          }
-         double AbsEta = fabs(ParticlesSignal[i].eta());
-         if(AbsEta > 2.5)
-            continue;
          if (ID==13 && ePIndex<0) ePIndex=i;
          if (ID==-13 && eMIndex<0) eMIndex=i;
       }
 
       vector<PseudoJet> LeadingZBoson;
-      if(ePIndex >= 0&&eMIndex>=0)
-      LeadingZBoson.push_back(ParticlesSignal[ePIndex]+ParticlesSignal[eMIndex]);
+      if(ePIndex >= 0&&eMIndex>=0) {
+         // if the eta > 2.5 then just skip the event
+         double AbsEta = fabs((ParticlesSignal[ePIndex]+ParticlesSignal[eMIndex]).eta());
+         if(AbsEta > 2.5 && JetType == "zjet") continue;
+         LeadingZBoson.push_back(ParticlesSignal[ePIndex]+ParticlesSignal[eMIndex]);
+      }
       //---------------------------------------------------------------------------
       //   opposite hemisphere selection
       //---------------------------------------------------------------------------
@@ -350,8 +351,10 @@ int main(int argc, char *argv[])
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
       vector<vector<double>> JConstituentPt;
-      vector<vector<double>> px, py, pz;
-      vector<vector<double>> pid;
+      vector<vector<double>> JConstituentEta;
+      vector<vector<double>> JConstituentPhi;
+      vector<vector<double>> JConstituentPx, JConstituentPy, JConstituentPz;
+      vector<vector<double>> JConstituentPid;
 
       csSubtractor Subtractor(JetR, 0, -1, 0.005, 6.0, 3.0);
       Subtractor.setInputParticles(ParticlesReal);
@@ -393,29 +396,25 @@ int main(int argc, char *argv[])
          JConstituents.push_back(J.constituents().size());
          vector<double> JCPt;
          vector<double> JCPx, JCPy, JCPz, JCPid;
+         vector<double> JCEta;
+         vector<double> JCPhi;
          for(int i = 0; i < (int)J.constituents().size(); i++) {
             JCPt.push_back(J.constituents()[i].pt());
             JCPx.push_back(J.constituents()[i].px());
             JCPy.push_back(J.constituents()[i].py());
             JCPz.push_back(J.constituents()[i].pz());
-            // JCPid.push_back(J.constituents()[i].E());
             JCPid.push_back((double)J.constituents()[i].user_info<PU14>().pdg_id());
+            JCEta.push_back(J.constituents()[i].eta());
+	         JCPhi.push_back(J.constituents()[i].phi());
          }
          JConstituentPt.push_back(JCPt);
-         // JCPx.push_back(J.px());
-         // JCPy.push_back(J.py());
-         // JCPz.push_back(J.pz());
-         // // JCPid.push_back(J.E());
-         // JCPid.push_back(J.user_info<PU14>().pdg_id());
-         px.push_back(JCPx);
-         py.push_back(JCPy);
-         pz.push_back(JCPz);
-         pid.push_back(JCPid);
+         JConstituentPx.push_back(JCPx);
+         JConstituentPy.push_back(JCPy);
+         JConstituentPz.push_back(JCPz);
+         JConstituentPid.push_back(JCPid);
+         JConstituentEta.push_back(JCEta);
+         JConstituentPhi.push_back(JCPhi);
       }
-      // px.push_back(JCPx);
-      // py.push_back(JCPy);
-      // pz.push_back(JCPz);
-      // pid.push_back(JCPid);
 
       JCSD1.addVector(Tag + "SD1NConstituent", JSD1Constituents);
       JCSD1.addVector(Tag + "SD1ZG",      SD1.getZgs());
@@ -519,14 +518,12 @@ int main(int argc, char *argv[])
       CounterKT.run(JCC, ParticlesDummy);
       JCC.addVector(Tag + "NConstituent", JConstituents);
       JCC.addVector(Tag + "ConstituentPt", JConstituentPt);
-      // JCC.addVector(Tag + "Px", JCPx);
-      // JCC.addVector(Tag + "Py", JCPy);
-      // JCC.addVector(Tag + "Pz", JCPz);
-      // JCC.addVector(Tag + "Pid", JCPid);
-      JCC.addVector(Tag + "Px", px);
-      JCC.addVector(Tag + "Py", py);
-      JCC.addVector(Tag + "Pz", pz);
-      JCC.addVector(Tag + "Pid", pid);
+      JCC.addVector(Tag + "ConstituentPx", JConstituentPx);
+      JCC.addVector(Tag + "ConstituentPy", JConstituentPy);
+      JCC.addVector(Tag + "ConstituentPz", JConstituentPz);
+      JCC.addVector(Tag + "ConstituentPid", JConstituentPid);
+      JC.addVector(Tag + "ConstituentEta", JConstituentEta);
+      JC.addVector(Tag + "ConstituentPhi", JConstituentPhi);
       JCC.addVector(Tag + "CAZGs", CounterCA.GetZGs());
       JCC.addVector(Tag + "CADRs", CounterCA.GetDRs());
       JCC.addVector(Tag + "CAPT1s", CounterCA.GetPT1s());
@@ -572,6 +569,24 @@ int main(int argc, char *argv[])
       //   Write tree
       //---------------------------------------------------------------------------
 
+      vector<int> Particle_pdg_id;
+      vector<double> ParticlePx;
+      vector<double> ParticlePy;
+      vector<double> ParticlePz;
+
+      for(int i = 0; i < (int)ParticlesReal.size(); i++)
+      {
+         Particle_pdg_id.push_back(ParticlesReal[i].user_info<PU14>().pdg_id());
+         ParticlePx.push_back(ParticlesReal[i].px());
+         ParticlePy.push_back(ParticlesReal[i].py());
+         ParticlePz.push_back(ParticlesReal[i].pz());
+      }
+
+      Writer.addCollection("Particles",	     ParticlesReal);
+      Writer.addCollection("pdg_id",	        Particle_pdg_id);
+      Writer.addCollection("ParticlesPx",	        ParticlePx);
+      Writer.addCollection("ParticlesPy",	        ParticlePy);
+      Writer.addCollection("ParticlesPz",	        ParticlePz);
       // Give variable we want to write out to treeWriter.
       // Only vectors of the types 'jetCollection', and 'double', 'int', 'PseudoJet' are supported
 
@@ -597,7 +612,9 @@ int main(int argc, char *argv[])
       Writer.addCollection("EventWeight",      EventWeight);
       Writer.addCollection("LeadingZPhi", LeadingZPhi);
       Writer.addCollection("LeadingPhotonPhi", LeadingPhotonPhi);
+      Writer.addCollection("LeadingPhotonEta", LeadingPhotonEta);
       Writer.addCollection("LeadingPhotonPt", LeadingPhotonPt);
+      
 
       if(DoPythiaShower)
       {
