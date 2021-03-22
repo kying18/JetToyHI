@@ -11,8 +11,8 @@ using namespace std;
 #include "uti.h"
 #include <math.h>
 
-// g++ PlotJetShapeTopics.cpp $(root-config --cflags --libs) -O2 -o "plotJetShapeTopics.exe"
-// ./plotJetShapeTopics.exe -input "/data/kying/EMMIResults/pp150,/data/kying/EMMIResults/PbPb150_0_10"
+// g++ PlotJetShape.cpp $(root-config --cflags --libs) -O2 -o "plotJetShape.exe"
+// ./plotJetShape.exe -input "/data/kying/EMMIResults/pp150,/data/kying/EMMIResults/PbPb150_0_10,/data/kying/EMMIResults/PbPbWide150_0_10"
 
 
 // tracks are charged particles
@@ -31,78 +31,6 @@ using namespace std;
 // runEmmi should be able to do it
 // so jet shape is like
 // the constituent momentum spectrum as a function of dR
-
-// we need to read the kappas!
-pair<vector<double>, vector<double>> readAllKappas(string filePath){
-    pair<vector<double>, vector<double>> result;
-
-    // Create an input filestream
-    ifstream kappasFile("./x100_pppbpb_kappas.csv");
-
-    // Make sure the file is open
-    if(!kappasFile.is_open()) throw runtime_error("Could not open kappas csv file");
-
-    string line, kappa;
-    int i = 0;
-    cout.precision(17);
-    while(getline(kappasFile, line, ',')){
-        stringstream ss(line);
-        while(getline(ss, kappa, ',')){
-            if (i == 0) {
-                result.first.push_back(stod(kappa));
-            } else {
-                result.second.push_back(stod(kappa));
-            }
-            if(ss.peek() == ',') ss.ignore();
-        }
-        i += 1;
-    }
-
-    return result;
-}
-
-// pair < mean, std >
-pair<double, double> getMeanAndStd(vector<double> & data){
-    pair<double, double> result;
-
-    int totalN = data.size();
-
-    // getting the mean
-    double totalSum = 0;
-    for (double d: data) {
-        totalSum += d;
-    }
-    double mean = totalSum / totalN;
-    result.first = mean;
-
-    // getting the standard deviation
-    double totalSquareDistMean = 0;
-    for (double d: data) {
-        totalSquareDistMean += pow(d - mean, 2);
-    }
-    double std = sqrt(totalSquareDistMean/totalN); // Note: should be totalN - 1 if sample, but tbh this is like diff between 999 and 1000
-    result.second = std;
-
-    return result;
-}
-
-pair<pair<double, double>, pair<double, double>> getKappa(string filePath){
-    pair<pair<double, double>, pair<double, double>> result;
-    pair<vector<double>, vector<double>> kappas = readAllKappas(filePath);
-
-    result.first = getMeanAndStd(kappas.first);
-    result.second = getMeanAndStd(kappas.second);
-    return result;
-}
-
-// def topic_and_err(p1, p1_errs, p2, p2_errs, kappa, kappa_errs):
-//     topic = (p1 - kappa*p2)/(1-kappa)
-//     topic_errs = np.sqrt((p1 - p2)**2 * kappa_errs**2 + (1 - kappa)**2 * (p1_errs**2 + kappa**2 * p2_errs**2)) / (1 - kappa)**2
-//     return [topic, topic_errs]
-
-// def calc_topics(p1, p1_errs, p2, p2_errs, kappa12, kappa21):
-//     return [topic_and_err(p1,p1_errs,p2,p2_errs,*kappa12), topic_and_err(p2,p2_errs,p1,p1_errs,*kappa21)]
-
 
 double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
     // this is the reconstructed track's radial distance from jet axis (defined by etaJet and phiJet)
@@ -152,8 +80,6 @@ tuple<string, string, string> getDataLabel(string fileName){
 }
 
 int main(int argc, char *argv[]) {
-    bool TESTING = true;
-
     SetThesisStyle();
     CommandLine CL(argc, argv);
     // string fileName = CL.Get("input");
@@ -173,27 +99,31 @@ int main(int argc, char *argv[]) {
     // double dr = 0.05;
     // Int_t n = 6;
     Int_t n = (int) ceil(maxR/dr);
-    Int_t nTopics = 2;
-    Double_t x[n], y[nTopics][n];
-    Double_t ex[n], ey[nTopics][n];
-    string legendLabels[nTopics];
-    double yMin = INFINITY;
-    double yMax = -INFINITY;
+    // cout << "n buckets: " << n << endl;
+    Double_t x[n], y[3][n];
+    Double_t ex[n], ey[3][n];
+    string legendLabels[3];
 
-    // get kappa value so that we can calculate topic = (p1 - kappa*p2)/(1-kappa)
-    pair<pair<double, double>, pair<double, double>> kappas = getKappa("./x100_pppbpb_kappas.csv"); // should be pp then PbPb
-    cout << "Got kappas... kappa12: " << kappas.first.first << ", kappa21: " << kappas.second.first << endl;
+    // hard coded data from https://twiki.cern.ch/twiki/pub/CMSPublic/PhysicsResultsHIN12002/DataPoint.txt
+    // centrality 0-10%
+    double xData[6] = {0.025, 0.075, 0.125, 0.175, 0.225, 0.275};
+    double yData[6] = {12.636, 4.560, 1.318, 0.707, 0.486, 0.294};
+    double exData[6] = {0.025, 0.025, 0.025, 0.025, 0.025, 0.025};
+    double eyData[6] = {0.050, 0.028, 0.012, 0.009, 0.009, 0.009};
 
-    // now get the two topics (make sure that the order is consistent)
-    for(int f=0; f < nTopics; f++) {  // TODO: hard coded that there would be 2 inputs
+    double yMin = *min_element(yData, yData+6);
+    double yMax = *max_element(yData, yData+6);
+
+    for(int f=0; f < 3; f++) {  // TODO: hard coded that there would be 3 inputs
         string folder = InputFileFolders[f];
         string dataLabel, fileLabel, legendLabel;
 
-        double rA, rB;
+        double r_a, r_b;
         double rho, count, totalyerr;
         for (int bin=0; bin < n; bin++){
-            rA = bin * dr;
-            rB = (bin + 1) * dr;
+            r_a = bin * dr;
+            r_b = (bin + 1) * dr;
+            // cout << "ra: " << r_a << ", rb: " << r_b << endl;
 
             rho = 0;
             count = 0;
@@ -205,13 +135,10 @@ int main(int argc, char *argv[]) {
             { 
                 cout << "Could not open directory: " << folder << endl;
                 return 0; 
-            }
-
-            int fileCount = 0;
+            } 
 
             while ((de = readdir(dir)) != NULL) {
                 if ( !strcmp(de->d_name, ".") || !strcmp(de->d_name, "..") ) {continue;}
-                if (TESTING && fileCount == 4) { break; }
                 string fileName = de->d_name;
                 TFile File((folder + "/" + fileName).c_str());
                 tie(dataLabel, fileLabel, legendLabel) = getDataLabel(fileName);
@@ -223,8 +150,6 @@ int main(int argc, char *argv[]) {
                     File.Close();
                     return 0;
                 }
-
-                fileCount += 1;
 
                 // signal jet eta: SignalJet04Eta --> approx 3779 entries (range from -pi to pi)
                 // signal jet phi: SignalJet04Phi --> same # entries (range from 0 to 2pi)
@@ -277,8 +202,8 @@ int main(int argc, char *argv[]) {
                             if ((*particlesPt)[k] > trackPtCut && abs((*signalJetEta)[j]) > 0.3 && abs((*signalJetEta)[j]) < 2) { // only for particles > trackPtCut
                                 double r = getR((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] ); 
 
-                                // check track is in [rA, rB)
-                                if (r >= rA && r < rB) {
+                                // check track is in [r_a, r_b) 
+                                if (r >= r_a && r < r_b ) {
                                     // pT of track to var
                                     sumTrackPts += (*particlesPt)[k]; 
                                     yerr += pow((*particlesPt)[k] * (*weight)[0] / (*signalJetPt)[j], 2);
@@ -294,16 +219,19 @@ int main(int argc, char *argv[]) {
                 File.Close();
                 // cout << "rho: " << rho << " count: " <<  count << endl;
             }
+            // cout << "total jets count " << count  << endl;
+            // cout << "total particles count " << particlesCount << endl;
             rho *= 1/dr * 1/count;
-            // totalyerr = sqrt(totalyerr) * 1/dr * 1/count;
-            cout << rA + 0.5 * dr << " " << rho << endl;
-            x[bin] = rA + 0.5 * dr;
+            // cout << "rho at end: " << rho << ", count at end: " << count << endl;
+            totalyerr = sqrt(totalyerr) * 1/dr * 1/count;
+            cout << r_a + 0.5 * dr << " " << rho << endl;
+            // hist->Fill(r_a + 0.5 * dr, rho); // x, y
+            x[bin] = r_a + 0.5 * dr;
             ex[bin] = 0.5 * dr;
             y[f][bin] = rho;
             // ey[f][bin] = totalyerr;
             ey[f][bin] = 0;
         }
-
         double currMin = *min_element(y[f], y[f]+n);
         yMin = min(currMin, yMin);
         double currMax = *max_element(y[f], y[f]+n);
@@ -311,102 +239,66 @@ int main(int argc, char *argv[]) {
         legendLabels[f] = legendLabel;
     }
 
-    cout << "Successfully got og jet shape" << endl;
+    cout << "y min: " << yMin << ", y max: " << yMax << endl;
 
-    // ok now we have our jet shape value for each bucket.. calculate the fractions using the formula! topic = (p1 - kappa*p2)/(1-kappa)
-    Double_t topics[nTopics][n], topicsErr[nTopics][n];
-    for(int i=0; i < n; i++) {
-        topics[0][i] = (y[0][i] - kappas.first.first * y[1][i]) / (1 - kappas.first.first);
-        topics[1][i] = (y[1][i] - kappas.second.first * y[0][i]) / (1 - kappas.second.first);
+    for(int f=0; f < 3; f++) { 
+        TGraph* gr = new TGraphErrors(n, x, y[f], ex, ey[f]);
 
-        topicsErr[0][i] = 0;
-        topicsErr[1][i] = 0;
-    }
+        legend->AddEntry(gr, legendLabels[f].c_str(), "p");
 
-    cout << "Successfully got jet shape as topics" << endl;
-
-    yMin = min(yMin, *min_element(topics[0], topics[0]+n));
-    yMin = min(yMin, *min_element(topics[1], topics[1]+n));
-    yMax = max(yMax, *max_element(topics[0], topics[0]+n));
-    yMax = max(yMax, *max_element(topics[1], topics[1]+n));
-
-    cout << "min: " << yMin << ", max: " << yMax << endl;
-
-    // PLOTTING TOPICS JET SHAPE
-    for (int i=0; i < nTopics; i++) {
-        if (i==0) plotColor = kViolet;
-        if (i==1) plotColor = kViolet+10;
-        TGraph* gr = new TGraphErrors(n, x, topics[i], ex, topicsErr[i]);
         gr->SetTitle("Jet Shape;r;\\rho(r)");
         gr->SetMarkerSize(1.2);
         gr->SetMarkerColor(plotColor);
         gr->SetFillColor(plotColor);
         // gr->SetFillStyle(3001);
-        gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
         gr->GetYaxis()->SetMoreLogLabels();
-        if (i == 0) {
-            legend->AddEntry(gr, "Topic 1", "p");
-            gr->Draw("2apz");
-        } else if (i == 1) {
-            legend->AddEntry(gr, "Topic 2", "p");
-            gr->Draw("2pz same");
+        
+        gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
+        if (plotColor == 2) {
+            gr->Draw("2apz"); // draw axes if first graph that we draw
+        } else {
+            gr->Draw("2pz same"); // ow draw on top
         }
         cn->Update();
+
+        plotColor += 1;
     }
 
-    // PLOTTING INPUT JET SHAPES
-    for (int i=0; i < nTopics; i++) {
-        if (i==0) plotColor = kGreen-7;
-        if (i==1) plotColor = kGreen+2;
-        TGraph* gr = new TGraphErrors(n, x, y[i], ex, ey[i]);
-        gr->SetTitle("Jet Shape;r;\\rho(r)");
-        gr->SetMarkerSize(1.2);
-        // gr->SetMarkerColor(plotColor + 2 + i);
-        gr->SetMarkerColor(plotColor);
-        // gr->SetFillColorAlpha(plotColor + 2 * i, 0.35);
-        gr->SetFillColor(plotColor);
-        // gr->SetFillStyle(3001);
-        gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
-        gr->GetYaxis()->SetMoreLogLabels();
-        legend->AddEntry(gr, legendLabels[i].c_str(), "p");
-        // if (i == 0) {
-        //     gr->Draw("2apz");
-        // } else if (i == 1) {
-        //     gr->Draw("2pz same");
-        // }
-        gr->Draw("2pz same");
-        cn->Update();
-    }
+    // plot data
+    TGraph* gr = new TGraphErrors(n, xData, yData, exData, ey[1]);
 
-    cout << "Successfully got dem graphs" << endl;
+    legend->AddEntry(gr, "Data", "p");
 
-    // PLOTTING REST OF STUFF/DRAWING
+    gr->SetTitle("Jet Shape;r;\\rho(r)");
+    gr->SetMarkerSize(1.2);
+    gr->SetMarkerColor(38); 
+    gr->SetFillColor(38);
+    // gr->SetFillStyle(3001);
+    gr->GetYaxis()->SetMoreLogLabels();
+    
+    gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
+    gr->Draw("2pz same"); // ow draw on top
+    cn->Update();
 
     // draw text
     TLatex *text = new TLatex();
     text->SetTextSize(0.025);
+    // Note to self.. if this label is not on the plot, then abs(eta) was just limited by > 0.3
     string latexText = "#splitline{p_{T}^{track} > " + to_string((int)trackPtCut) + "GeV, p_{T}^{jet} > " + to_string((int)minPT) + "GeV}{0.3 < | #eta^{jet} | < 2 }"; //0.3 < |\\eta^{jet}| < 2
     // string latexText = "#splitline{p_{T}^{track} > 1GeV, p_T^{jet} > 0GeV}{"+dataLabel+"}";
     // text->DrawLatexNDC(0.65, 0.82, latexText.c_str());
     text->DrawLatexNDC(0.15, 0.2, latexText.c_str());
     // mg->Draw("a");
 
-    cout << "draw text" << endl;
-
     legend->SetTextSize(0.025);
     legend->SetFillColor(0);
     legend->SetBorderSize(1);
     legend->Draw("");
 
-    cout << "draw legend" << endl;
-
     cn->SetLogy(1);
     cn->SetRightMargin(0.05);
     cn->Update();
-    cout << "before save" << endl;
-    cn->SaveAs(("./jetShapePlots/jetshapetopics_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
-
-    cout << "save plot" << endl;
+    cn->SaveAs(("./jetShapePlots/dijets_withdata_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
 
     return 0;
 }

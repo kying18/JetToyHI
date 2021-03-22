@@ -1,0 +1,35 @@
+#!/bin/bash
+
+
+# jetTopicsData_RemoveAll is when we remove all of the jets where the photon or zjet are "out of bounds" for the detector
+count=0
+
+for i in {1..100}
+do
+	(
+		./runLundPlane -hard "/data/yjlee/pyquen/ppPhotonJet150/pp_${i}.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_RemoveAll/ppPhotonJet150/pp_${i}.root" -type photonjet
+		./runLundPlane -hard "/data/yjlee/pyquen/PbPbWidePhotonJet150_0_10/PbPbWide_0_10_${i}.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_RemoveAll/PbPbWidePhotonJet150_0_10/PbPbWide_0_10_${i}.root" -type photonjet
+		./runLundPlane -hard "/data/yjlee/pyquen/ppZJet150/pp_${i}.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_RemoveAll/ppZJet150/pp_${i}.root" -type zjet
+		./runLundPlane -hard "/data/yjlee/pyquen/PbPbWideZJet150_0_10/PbPbWide_0_10_${i}.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_RemoveAll/PbPbWideZJet150_0_10/PbPbWide_0_10_${i}.root" -type zjet
+		./runLundPlane -hard "/data/yjlee/pyquen/pp150/pp_${i}.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_RemoveAll/pp150/pp_${i}.root" -type dijet
+		./runLundPlane -hard "/data/yjlee/pyquen/PbPbWide150_0_10/PbPbWide_0_10_${i}.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_RemoveAll/PbPbWide150_0_10/PbPbWide_0_10_${i}.root" -type dijet
+		./runLundPlane -hard "/data/yjlee/pyquen/PbPb150_0_10/PbPb_0_10_${i}.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_RemoveAll/PbPb150_0_10/PbPb150_0_10_${i}.root" -type dijet
+
+		# ./runLundPlane -hard "/data/yjlee/pyquen/ppPhotonJet150/pp_${i}.pu14" -hardtype PU14 -pileup /data/emmi/thermal/ThermalEventsMult7000PtAv1.20_14.pu14.gz -pileuptype PU14 -nev 2000 -output "/data/kying/jetTopicsData/ppPhotonJet150_7000thermal/pp_${i}.root" -type photonjet
+		# ./runLundPlane -hard "/data/yjlee/pyquen/PbPbWidePhotonJet150_0_10/PbPbWide_0_10_${i}.pu14" -hardtype PU14 -pileup /data/emmi/thermal/ThermalEventsMult7000PtAv1.20_14.pu14.gz -pileuptype PU14 -nev 2000 -output "/data/kying/jetTopicsData/PbPbWidePhotonJet150_0_10_7000thermal/PbPbWide_0_10_${i}.root" -type photonjet
+		# ./runLundPlane -hard "/data/yjlee/pyquen/ppZJet150/pp_${i}.pu14" -hardtype PU14 -pileup /data/emmi/thermal/ThermalEventsMult7000PtAv1.20_14.pu14.gz -pileuptype PU14 -nev 2000 -output "/data/kying/jetTopicsData/ppZJet150_7000thermal/pp_${i}.root" -type zjet
+		# ./runLundPlane -hard "/data/yjlee/pyquen/PbPbWideZJet150_0_10/PbPbWide_0_10_${i}.pu14" -hardtype PU14 -pileup /data/emmi/thermal/ThermalEventsMult7000PtAv1.20_14.pu14.gz -pileuptype PU14 -nev 2000 -output "/data/kying/jetTopicsData/PbPbWideZJet150_0_10_7000thermal/PbPbWide_0_10_${i}.root" -type zjet
+		# ./runLundPlane -hard "/data/yjlee/pyquen/pp150/pp_${i}.pu14" -hardtype PU14 -pileup /data/emmi/thermal/ThermalEventsMult7000PtAv1.20_14.pu14.gz -pileuptype PU14 -nev 2000 -output "/data/kying/jetTopicsData/pp150_7000thermal/pp_${i}.root" -type dijet
+		# ./runLundPlane -hard "/data/yjlee/pyquen/PbPbWide150_0_10/PbPbWide_0_10_${i}.pu14" -hardtype PU14 -pileup /data/emmi/thermal/ThermalEventsMult7000PtAv1.20_14.pu14.gz -pileuptype PU14 -nev 2000 -output "/data/kying/jetTopicsData/PbPbWide150_0_10_7000thermal/PbPbWide_0_10_${i}.root" -type dijet
+		# ./runLundPlane -hard "/data/yjlee/pyquen/PbPb150_0_10/PbPb_0_10_${i}.pu14" -hardtype PU14 -pileup /data/emmi/thermal/ThermalEventsMult7000PtAv1.20_14.pu14.gz -pileuptype PU14 -nev 2000 -output "/data/kying/jetTopicsData/PbPb150_0_10_7000thermal/PbPb150_0_10_${i}.root" -type dijet
+
+	) &
+
+	let count+=1
+    [[ $((count%5)) -eq 0 ]] && wait
+
+done
+
+
+# ./runLundPlane -hard "/data/yjlee/pyquen/ppPhotonJet150/pp_2.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData/ppPhotonJet24/pp_2.root" -type photonjet
+# ./runLundPlane -hard "/data/yjlee/pyquen/ppPhotonJet150/pp_4.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData/ppPhotonJet24/pp_4.root" -type photonjet
