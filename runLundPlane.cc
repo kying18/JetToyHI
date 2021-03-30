@@ -49,6 +49,27 @@ vector<int> getConstituentVector(vector<vector<PseudoJet>> &constituents) {
 
 }
 
+double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
+    // this is the reconstructed track's radial distance from jet axis (defined by etaJet and phiJet)
+    // tracks = charged particles
+    double deta = etaTrack - etaJet;
+    // signal jet phi: SignalJet04Phi --> same # entries (range from 0 to 2pi)
+    // particles phi: ParticlesPhi --> same # of entries (range from 0 to 2pi)
+    double dphi = phiTrack - phiJet;
+
+    // cout << "dphi: " << dphi << endl;
+    // dphi should be between -pi and pi
+    if (dphi < -M_PI) {
+        dphi = 2*M_PI - abs(dphi);  // if phi is < -pi, then 2pi - value of dphi is new
+    } else if (dphi > M_PI) {
+        dphi = - (2*M_PI - dphi); // if phi > pi, then 2pi - dphi is new value, but need to negate
+    }
+
+    assert(dphi >= -M_PI && dphi <= M_PI);
+
+    return sqrt(pow(deta,2) + pow(dphi, 2));
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -112,9 +133,11 @@ int main(int argc, char *argv[])
       vector<PseudoJet> ParticlesDummy, ParticlesReal;
       vector<PseudoJet> ParticlesSignal;
       vector<PseudoJet> ParticlesIntermediate;
+      vector<PseudoJet> ParticlesMatrix;
       for(PseudoJet &P : ParticlesMerged)
       {
          int type = P.user_info<PU14>().vertex_number();
+         // cout << "TYPE: " << type << endl;
          switch(type)
          {
          case 1:  // this is background
@@ -134,12 +157,24 @@ int main(int argc, char *argv[])
             }
             ParticlesDummy.push_back(P);
             break;
+         case -21: // this is matrix element
+            // we only care about quarks and gluons
+            if (fabs(P.user_info<PU14>().pdg_id()) != 2 && fabs(P.user_info<PU14>().pdg_id()) != 21) break;
+            ParticlesMatrix.push_back(P);
+            break;
          default:   // all other cases are intermediate particles
             // fill into ParticlesIntermediate
             ParticlesIntermediate.push_back(P);
             break;
          }
       }
+
+      // for(int i = 0; i < (int)ParticlesMatrix.size(); i++)
+      // {
+      //    const int &ID = ParticlesMatrix[i].user_info<PU14>().pdg_id();
+      //    if (fabs(ID) == 2) cout << "QUARK" << endl;
+      //    if (fabs(ID) == 21) cout << "GLUON" << endl;
+      // }
 
       //---------------------------------------------------------------------------
       //   Leading parton history
@@ -179,25 +214,62 @@ int main(int argc, char *argv[])
       //   find leading photon
       //---------------------------------------------------------------------------
 
+      // int PhotonIndex = -1;
+      // vector<double> PhotonIso;
+      // double iso=-1;
+      // for(int i = 0; i < (int)ParticlesSignal.size(); i++)
+      // {
+      //    const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
+
+      //    if(ID != 22) continue;
+      //    if(PhotonIndex < 0 || ParticlesSignal[PhotonIndex].perp() < ParticlesSignal[i].perp()) {
+      //       PhotonIndex = i;
+      //    }
+      // }
+
+      // vector<PseudoJet> LeadingPhoton;
+      // if(PhotonIndex >= 0) {
+      //    // if the eta > 2.5 then just skip the event
+      //    double AbsEta = fabs(ParticlesSignal[PhotonIndex].eta());
+      //    if(AbsEta > 2.5 && JetType == "photonjet") continue;
+      //    LeadingPhoton.push_back(ParticlesSignal[PhotonIndex]);
+      // }
+
       int PhotonIndex = -1;
+      vector<double> PhotonIso;
+      double iso=-1;
       for(int i = 0; i < (int)ParticlesSignal.size(); i++)
       {
          const int &ID = ParticlesSignal[i].user_info<PU14>().pdg_id();
-
-         if(ID != 22)
-            continue;
-         if(PhotonIndex < 0 || ParticlesSignal[PhotonIndex].perp() < ParticlesSignal[i].perp()) {
-            PhotonIndex = i;
-         }
+         if(fabs(ID) != 22) continue;
+         double AbsEta = fabs(ParticlesSignal[i].eta());
+         if(AbsEta > 1.442) continue;
+         double PhotonPhi = ParticlesSignal[i].phi();
+         double PhotonEta = ParticlesSignal[i].eta();
+         if (ParticlesSignal[i].pt()>ParticlesSignal[PhotonIndex].pt()){
+            double sumPt=0;
+            for(int j = 0; j < (int)ParticlesSignal.size(); j++){
+               if (i==j) continue;
+               const int &ID2 = ParticlesSignal[j].user_info<PU14>().pdg_id();
+               if (HepPID::isHadron(ID2) == false && HepPID::isLepton(ID2) == false ) continue;
+               double DPhi = PhotonPhi - ParticlesSignal[j].phi();
+               if(DPhi < -M_PI)   DPhi = DPhi + 2 * M_PI;
+               if(DPhi > +M_PI)   DPhi = DPhi - 2 * M_PI;
+               double DEta = PhotonEta - ParticlesSignal[j].eta();
+               if (sqrt(DPhi*DPhi+DEta*DEta)>0.4) continue;
+               sumPt += ParticlesSignal[j].pt();
+            }
+          if (sumPt>5) continue;
+         PhotonIndex = i;
+         iso=sumPt;
+        }
       }
-
       vector<PseudoJet> LeadingPhoton;
-      if(PhotonIndex >= 0) {
-         // if the eta > 2.5 then just skip the event
-         double AbsEta = fabs(ParticlesSignal[PhotonIndex].eta());
-         if(AbsEta > 2.5 && JetType == "photonjet") continue;
+      if(PhotonIndex>=0&&ParticlesSignal[PhotonIndex].pt()>40) {
          LeadingPhoton.push_back(ParticlesSignal[PhotonIndex]);
-      }
+         PhotonIso.push_back(iso);
+        }
+      else if (JetType == "photonjet") continue; // we only realllllyyyy want to skip event if this is photon jet i think (TODO check)
 
       //---------------------------------------------------------------------------
       //   opposite hemisphere selection
@@ -348,6 +420,9 @@ int main(int argc, char *argv[])
       jetCollection JC(sorted_by_pt(JetSelector(Cluster.inclusive_jets(10))));
       jetCollection JCJewel(GetCorrectedJets(JC.getJet(), ParticlesDummy));
 
+      // getting the tag (ie quark/gluon)
+      vector<int> JMatrixElem;
+
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
       vector<vector<double>> JConstituentPt;
@@ -393,6 +468,30 @@ int main(int argc, char *argv[])
       vector<int> JSD6Constituents = getConstituentVector(ConstituentsSD6);
 
       for (auto J : JCC.getJet()) {
+         // for each jet, get the initiating parton by finding which dR between jet and matrix elem is smallest
+         double jetPhi = J.phi();
+         double jetEta = J.eta();
+
+         double minR = INFINITY;
+         int matrixElement = -1;
+
+         for(int i = 0; i < (int)ParticlesMatrix.size(); i++)
+         {
+            const int &ID = ParticlesMatrix[i].user_info<PU14>().pdg_id();
+            double matEta = ParticlesMatrix[i].eta();
+            double matPhi = ParticlesMatrix[i].phi();
+
+            double r = getR(matEta, jetEta, matPhi, jetPhi);
+            if (r < minR) {
+               minR = r;
+               matrixElement = fabs(ID); // id will be 2 for quark or 21 for gluon
+            }
+            // if (fabs(ID) == 2) cout << "QUARK" << endl;
+            // if (fabs(ID) == 21) cout << "GLUON" << endl;
+         }
+
+         JMatrixElem.push_back(matrixElement);
+
          JConstituents.push_back(J.constituents().size());
          vector<double> JCPt;
          vector<double> JCPx, JCPy, JCPz, JCPid;
@@ -516,6 +615,7 @@ int main(int argc, char *argv[])
       CounterAK.run(JCC, ParticlesDummy);
       CounterCAKT.run(JCC, ParticlesDummy);
       CounterKT.run(JCC, ParticlesDummy);
+      JCC.addVector(Tag + "MatrixElem", JMatrixElem);
       JCC.addVector(Tag + "NConstituent", JConstituents);
       JCC.addVector(Tag + "ConstituentPt", JConstituentPt);
       JCC.addVector(Tag + "ConstituentPx", JConstituentPx);
