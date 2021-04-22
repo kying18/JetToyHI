@@ -4,7 +4,7 @@
 # jetTopicsData_cone is when we remove all of the jets where the photon or zjet are "out of bounds" for the detector
 count=0
 
-for i in {100..100}
+for i in {1..100}
 do
 	echo $i
 	(
@@ -31,6 +31,7 @@ do
 
 done
 
-
+./runLundPlane -hard "/data/kying/pp_100.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_cone/ppZJet150/pp_100.root" -type zjet
+./runLundPlane -hard "/data/kying/PbPb_100.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData_cone/PbPbWideZJet150_0_10/PbPbWide_0_10_100.root" -type zjet
 # ./runLundPlane -hard "/data/yjlee/pyquen/ppPhotonJet150/pp_2.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData/ppPhotonJet24/pp_2.root" -type photonjet
 # ./runLundPlane -hard "/data/yjlee/pyquen/ppPhotonJet150/pp_4.pu14" -hardtype PU14 -nev 2000 -output "/data/kying/jetTopicsData/ppPhotonJet24/pp_4.root" -type photonjet

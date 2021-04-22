@@ -5,10 +5,19 @@ declare -a pts=("0" "100" "200")
 
 count=0
 
-for i in ${pts[@]}
+# for i in ${pts[@]}
+for i in `seq 0 20 200`
 do
     (
-        ./getJetTopicHists.exe -input "/data/kying/jetTopicsData_cone/ppZJet150,/data/kying/jetTopicsData_cone/PbPbWideZJet150_0_10,/data/kying/jetTopicsData_cone/ppPhotonJet150,/data/kying/jetTopicsData_cone/PbPbWidePhotonJet150_0_10,/data/kying/jetTopicsData_cone/pp150,/data/kying/jetTopicsData_cone/PbPb150_0_10,/data/kying/jetTopicsData_cone/PbPbWide150_0_10" -minpt $i -output "./matrix_elem/" 
+        # if (($i % 100 == 0))
+        # then
+        #     # echo $i
+        #     ./getJetTopicHists.exe -input "/data/kying/jetTopicsData_cone/ppZJet150,/data/kying/jetTopicsData_cone/PbPbWideZJet150_0_10,/data/kying/jetTopicsData_cone/ppPhotonJet150,/data/kying/jetTopicsData_cone/PbPbWidePhotonJet150_0_10,/data/kying/jetTopicsData_cone/pp150,/data/kying/jetTopicsData_cone/PbPb150_0_10,/data/kying/jetTopicsData_cone/PbPbWide150_0_10" -minpt $i -output "./matrix_elem/" 
+        # fi
+        # echo $i $(($i + 20))
+        # echo pt${i}$(($i + 20))histogram.csv
+        > matrix_elem/pt${i}$(($i + 20))histogram.csv
+        ./getJetTopicHists.exe -input "/data/kying/jetTopicsData_cone/ppZJet150,/data/kying/jetTopicsData_cone/PbPbWideZJet150_0_10,/data/kying/jetTopicsData_cone/ppPhotonJet150,/data/kying/jetTopicsData_cone/PbPbWidePhotonJet150_0_10,/data/kying/jetTopicsData_cone/pp150,/data/kying/jetTopicsData_cone/PbPb150_0_10,/data/kying/jetTopicsData_cone/PbPbWide150_0_10" -minpt $i -maxpt $(($i + 20)) -output "./matrix_elem/" 
     ) &
     # for sd in ${softdrops[@]}
     # do
@@ -23,5 +32,5 @@ do
 
 done
 
-# ./getJetTopicHists.exe -input "/data/kying/jetTopicsData_cone/ppZJet150,/data/kying/jetTopicsData_cone/PbPbWideZJet150_0_10,/data/kying/jetTopicsData_cone/ppPhotonJet150,/data/kying/jetTopicsData_cone/PbPbWidePhotonJet150_0_10,/data/kying/jetTopicsData_cone/pp150,/data/kying/jetTopicsData_cone/PbPb150_0_10,/data/kying/jetTopicsData_cone/PbPbWide150_0_10" -minpt 0 -output "./matrix_elem/" 
-# ./getJetTopicHists.exe -input "/data/kying/jetTopicsData_cone/ppZJet150" -minpt 0 -output "./matrix_elem/" 
+# ./getJetTopicHists.exe -input "/data/kying/jetTopicsData_cone/ppZJet150,/data/kying/jetTopicsData_cone/PbPbWideZJet150_0_10,/data/kying/jetTopicsData_cone/ppPhotonJet150,/data/kying/jetTopicsData_cone/PbPbWidePhotonJet150_0_10,/data/kying/jetTopicsData_cone/pp150,/data/kying/jetTopicsData_cone/PbPb150_0_10,/data/kying/jetTopicsData_cone/PbPbWide150_0_10" -minpt 0 -output "./test/" 
+# ./getJetTopicHists.exe -input "/data/kying/jetTopicsData_cone/ppZJet150" -minpt 0 -output "./test/" 

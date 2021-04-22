@@ -117,6 +117,8 @@ int main(int argc, char *argv[])
       // increment event number
       iEvent = iEvent + 1;
 
+      // cout << "Event: " << iEvent << endl;
+
       Bar.Update(iEvent);
       Bar.PrintWithMod(EntryDiv);
 
@@ -134,6 +136,8 @@ int main(int argc, char *argv[])
       vector<PseudoJet> ParticlesSignal;
       vector<PseudoJet> ParticlesIntermediate;
       vector<PseudoJet> ParticlesMatrix;
+
+      double matrixElemList[] = {1, 2, 3, 4, 5, 6, 21};
       for(PseudoJet &P : ParticlesMerged)
       {
          int type = P.user_info<PU14>().vertex_number();
@@ -158,9 +162,10 @@ int main(int argc, char *argv[])
             ParticlesDummy.push_back(P);
             break;
          case -21: // this is matrix element
-            // we only care about quarks and gluons
-            if (fabs(P.user_info<PU14>().pdg_id()) != 2 && fabs(P.user_info<PU14>().pdg_id()) != 21) break;
-            ParticlesMatrix.push_back(P);
+            // we only care about quarks and gluonsi
+            if (find(begin(matrixElemList), std::end(matrixElemList), fabs(P.user_info<PU14>().pdg_id())) != end(matrixElemList)) ParticlesMatrix.push_back(P);
+            // if (fabs(P.user_info<PU14>().pdg_id()) != 2 && fabs(P.user_info<PU14>().pdg_id()) != 21) break;
+            // ParticlesMatrix.push_back(P);
             break;
          default:   // all other cases are intermediate particles
             // fill into ParticlesIntermediate
@@ -168,6 +173,8 @@ int main(int argc, char *argv[])
             break;
          }
       }
+
+      // cout << "Size of particles matrix: " << ParticlesMatrix.size() << endl;
 
       // for(int i = 0; i < (int)ParticlesMatrix.size(); i++)
       // {
@@ -422,6 +429,7 @@ int main(int argc, char *argv[])
 
       // getting the tag (ie quark/gluon)
       vector<int> JMatrixElem;
+      vector<double> JMatrixElemDR;
 
       vector<double> Rho, RhoM;
       vector<int> JConstituents;
@@ -473,7 +481,7 @@ int main(int argc, char *argv[])
          double jetEta = J.eta();
 
          double minR = INFINITY;
-         int matrixElement = -1;
+         int matrixElement = 0;
 
          for(int i = 0; i < (int)ParticlesMatrix.size(); i++)
          {
@@ -484,13 +492,13 @@ int main(int argc, char *argv[])
             double r = getR(matEta, jetEta, matPhi, jetPhi);
             if (r < minR) {
                minR = r;
-               matrixElement = fabs(ID); // id will be 2 for quark or 21 for gluon
+               matrixElement = fabs(ID);
             }
-            // if (fabs(ID) == 2) cout << "QUARK" << endl;
-            // if (fabs(ID) == 21) cout << "GLUON" << endl;
          }
+         
 
-         JMatrixElem.push_back(matrixElement);
+         JMatrixElem.push_back(matrixElement); // keeps track of the matrix element associated with jet
+         JMatrixElemDR.push_back(minR);  // keeps track of min distance (matching performance)
 
          JConstituents.push_back(J.constituents().size());
          vector<double> JCPt;
@@ -616,6 +624,7 @@ int main(int argc, char *argv[])
       CounterCAKT.run(JCC, ParticlesDummy);
       CounterKT.run(JCC, ParticlesDummy);
       JCC.addVector(Tag + "MatrixElem", JMatrixElem);
+      JCC.addVector(Tag + "MatrixElemDR", JMatrixElemDR);
       JCC.addVector(Tag + "NConstituent", JConstituents);
       JCC.addVector(Tag + "ConstituentPt", JConstituentPt);
       JCC.addVector(Tag + "ConstituentPx", JConstituentPx);

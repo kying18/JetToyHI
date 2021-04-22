@@ -962,5 +962,39 @@ std::vector<int> GetPrimaryColors()
    return Colors;
 }
 
+std::vector<int> GetDifferentiableColors()
+{
+   std::vector<int> Colors;
+
+   Colors.push_back(TColor::GetColor("#018571"));
+   Colors.push_back(TColor::GetColor("#4DAC26"));
+   Colors.push_back(TColor::GetColor("#884EA0"));
+   Colors.push_back(TColor::GetColor("#2E86C1"));
+   Colors.push_back(TColor::GetColor("#D01C8B"));
+   Colors.push_back(TColor::GetColor("#E66101"));
+   Colors.push_back(TColor::GetColor("#E74C3C"));
+   Colors.push_back(TColor::GetColor("#404040"));
+
+   return Colors;
+}
+
+std::vector<int> GetDifferentiableColorsLight()
+{
+   std::vector<int> Colors;
+
+   Colors.push_back(TColor::GetColor("#80CDC1"));
+   Colors.push_back(TColor::GetColor("#B8E186"));
+   Colors.push_back(TColor::GetColor("#AF7AC5"));
+   Colors.push_back(TColor::GetColor("#5DADE2"));
+   Colors.push_back(TColor::GetColor("#F9BBDF"));
+   Colors.push_back(TColor::GetColor("#F39C12"));
+   Colors.push_back(TColor::GetColor("#EC7063"));
+   Colors.push_back(TColor::GetColor("#CACACA"));
+
+   return Colors;
+}
+
+
+
 
 #endif
