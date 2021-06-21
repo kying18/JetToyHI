@@ -2,6 +2,7 @@
 #define SetStyle_h_ikdofqwjito3jgthyqiwko3jhigtyq2jghufolqjgthy
 
 #include <cstdlib>
+#include <vector>
 
 #include "TStyle.h"
 #include "TROOT.h"
@@ -33,6 +34,7 @@ void AddCMSPreliminary(double X = 0.15, double Y = 0.875, double Luminosity = -1
 void AddCMS(double X = 0.15, double Y = 0.875, double Luminosity = -1, double FontSize = 0.03);
 void AddCMSSimulation(double X = 0.15, double Y = 0.875, double Luminosity = -1, double FontSize = 0.03);
 void AddHeader(string AdditionalComment = "", bool Colored = false);
+std::vector<int> GetPrimaryColors();
 
 void SetThesisStyle()
 {
@@ -945,6 +947,54 @@ void AddHeader(string AdditionalComment, bool Colored)
 
    Latex.DrawLatex(0.01, 0.01, AdditionalComment.c_str());
 }
+
+std::vector<int> GetPrimaryColors()
+{
+   std::vector<int> Colors;
+
+   Colors.push_back(TColor::GetColor("#E74C3C"));
+   Colors.push_back(TColor::GetColor("#3498DB"));
+   Colors.push_back(TColor::GetColor("#F1C40F"));
+   Colors.push_back(TColor::GetColor("#2ECC71"));
+   Colors.push_back(TColor::GetColor("#7F7F7F"));
+   Colors.push_back(TColor::GetColor("#8E44AD"));
+
+   return Colors;
+}
+
+
+std::vector<int> GetDifferentiableColors()
+{
+   std::vector<int> Colors;
+
+   Colors.push_back(TColor::GetColor("#018571"));
+   Colors.push_back(TColor::GetColor("#4DAC26"));
+   Colors.push_back(TColor::GetColor("#884EA0"));
+   Colors.push_back(TColor::GetColor("#2E86C1"));
+   Colors.push_back(TColor::GetColor("#D01C8B"));
+   Colors.push_back(TColor::GetColor("#E66101"));
+   Colors.push_back(TColor::GetColor("#E74C3C"));
+   Colors.push_back(TColor::GetColor("#404040"));
+
+   return Colors;
+}
+
+std::vector<int> GetDifferentiableColorsLight()
+{
+   std::vector<int> Colors;
+
+   Colors.push_back(TColor::GetColor("#80CDC1"));
+   Colors.push_back(TColor::GetColor("#B8E186"));
+   Colors.push_back(TColor::GetColor("#AF7AC5"));
+   Colors.push_back(TColor::GetColor("#5DADE2"));
+   Colors.push_back(TColor::GetColor("#F9BBDF"));
+   Colors.push_back(TColor::GetColor("#F39C12"));
+   Colors.push_back(TColor::GetColor("#EC7063"));
+   Colors.push_back(TColor::GetColor("#CACACA"));
+
+   return Colors;
+}
+
 
 
 

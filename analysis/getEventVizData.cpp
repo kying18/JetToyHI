@@ -13,7 +13,7 @@ using namespace std;
 
 
 // g++ getEventVizData.cpp $(root-config --cflags --libs) -O2 -o "getEventVizData.exe"
-// ./getEventVizData.exe -input "/data/kying/jetTopicsData/ppPhotonJet24/pp_2.root" -output "eventViz/pp_2_" -events "144,325,373,393,433,465"
+// ./getEventVizData.exe -input "/data/kying/photonFilterJetTopicsData80/ppPhotonJet80/pp_5.root" -output "eventViz/photonJet" -events "1848"
 
 double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
     // this is the reconstructed track's radial distance from jet axis (defined by etaJet and phiJet)
@@ -48,7 +48,7 @@ int getColorIndex(double etaTrack, double etaJetLeading, double etaJetSubLeading
     //       color index = 3
     //    Else:
     //       color index = 4
-    cout << particleID << " " << etaTrack << " " << phiTrack << endl;
+    // cout << particleID << " " << etaTrack << " " << phiTrack << endl;
     if (particleID == 22) { return 1; }
 
     if (-M_PI <= etaJetLeading && etaJetLeading <= M_PI && 0 <= phiJetLeading && phiJetLeading <= 2*M_PI) {
@@ -86,132 +86,171 @@ int main(int argc, char *argv[])
 
     CommandLine CL(argc, argv);
 
-    string inputFile = CL.Get("input");
+    // string inputFile = CL.Get("input");
+    vector<string> InputFileFolders = CL.GetStringVector("input");
     string outputBase = CL.Get("output");
     double minPT = CL.GetDouble("minpt", 100);
-    vector<int> events = CL.GetIntVector("events");
+    double maxPT = CL.GetDouble("maxpt", 120);
+    // vector<int> events = CL.GetIntVector("events");
 
     // stuff for the output csv
     ofstream outFile(outputBase + "eventFile.txt", ios_base::app);
     ostream_iterator<string> output_iterator(outFile, "\n");
 
-    TFile File(inputFile.c_str());
-    cout <<inputFile.c_str()<<endl;
-    TTree *Tree = (TTree *)File.Get("JetTree");
-
-    if(Tree == nullptr)
+    for(string folder : InputFileFolders)
     {
-        File.Close();
-        return 0;
-    }
 
-    vector<double> *SignalJetNConstituent = nullptr;
-    vector<double> *SignalJetPt = nullptr;
-    vector<double> *Weight = nullptr;
-    vector<double> *SignalJetPhi = nullptr;
-    vector<double> *SignalJetEta = nullptr;
-    vector <double> *LeadingZPhi = nullptr;
-    vector <double> *LeadingPhotonPhi = nullptr;
-    vector <double> *LeadingPhotonEta = nullptr;
-    vector <double> *LeadingPhotonPt = nullptr;
-    vector<double> *ParticlesPx = nullptr;
-    vector<double> *ParticlesPy = nullptr;
-    vector<double> *ParticlesPz = nullptr;
-    vector<int> *ParticlesID = nullptr;
-    vector<double> *ParticlesEta = nullptr;
-    vector<double> *ParticlesPhi = nullptr;
+        struct dirent *de; // to get files in path
+        DIR *dr = opendir(folder.c_str()); 
+        if (dr == NULL)  // opendir returns NULL if couldn't open directory 
+        { 
+            cout << "Could not open directory: " << folder << endl;
+            return 0; 
+        } 
 
-    Tree->SetBranchAddress("SignalJetNConstituent", &SignalJetNConstituent);
-    Tree->SetBranchAddress("SignalJetPt", &SignalJetPt);
-    Tree->SetBranchAddress("SignalJetPhi", &SignalJetPhi);
-    Tree->SetBranchAddress("SignalJetEta", &SignalJetEta);
-    Tree->SetBranchAddress("LeadingZPhi", &LeadingZPhi);
-    Tree->SetBranchAddress("LeadingPhotonPhi", &LeadingPhotonPhi);
-    Tree->SetBranchAddress("LeadingPhotonEta", &LeadingPhotonEta);
-    Tree->SetBranchAddress("LeadingPhotonPt", &LeadingPhotonPt);
-    Tree->SetBranchAddress("EventWeight", &Weight);
-    Tree->SetBranchAddress("ParticlesEta", &ParticlesEta);
-    Tree->SetBranchAddress("ParticlesPhi", &ParticlesPhi);
-    Tree->SetBranchAddress("ParticlesPx", &ParticlesPx);
-    Tree->SetBranchAddress("ParticlesPy", &ParticlesPy);
-    Tree->SetBranchAddress("ParticlesPz", &ParticlesPz);
-    Tree->SetBranchAddress("pdg_id", &ParticlesID);
+        int fileCount = 0; // REMOVE
+        while ((de = readdir(dr)) != NULL) {
+            if ( !strcmp(de->d_name, ".") || !strcmp(de->d_name, "..") ) continue;
+            // if (fileCount > 5) continue; // REMOVE
+            string fileName = de->d_name;
+            TFile File((folder + "/" + fileName).c_str());
 
-    for(int iE: events)
-    {
-        Tree->GetEntry(iE);
+            // TFile File(inputFile.c_str());
+            // cout <<inputFile.c_str()<<endl;
+            TTree *Tree = (TTree *)File.Get("JetTree");
 
-        if(SignalJetPt == nullptr)
-            continue;
-
-        outFile << "################################" << " Event " << iE << " ################################" << endl;
-
-        int NJet = SignalJetPt->size();
-        int NParticles = ParticlesID->size();
-
-        cout << iE << ", particles " << NParticles << endl;
-
-        double MaxPT = 0; // to find max pt jet in event
-        int MaxPTEventIndex = -1;
-        double MaxPT2 = 0; // to find second max pt jet in event
-        int MaxPTEventIndex2 = -1;
-
-        // iterate through the jets in the event to find the leading jets
-        for(int iJ = 0; iJ < NJet; iJ++)
-        {
-            cout << "leading photon phi: "<< (*LeadingPhotonPhi)[0] << ", eta: "<< (*LeadingPhotonEta)[iJ]<< ", pt: "<< (*LeadingPhotonPt)[0] << endl;
-            cout << "signal jet phi: "<< (*SignalJetPhi)[0] << ", signal jet eta: "<< (*SignalJetEta)[iJ] << endl;
-            
-            // if(zJet && !oppositeHemisphere((*LeadingZPhi)[0], (*SignalJetPhi)[iJ])) continue; // if its a z jet and not in the opposite hemisphere according to leading z phi
-            if(!oppositeHemisphere((*LeadingPhotonPhi)[0], (*SignalJetPhi)[iJ])) continue; // same logic but photons
-
-            cout << "signal jet pt: "<< (*SignalJetPt)[iJ] << endl;
-
-            // now let's try to find the leading 2 jets! (we'll find leading 2 even tho there may just be 1.. or zjet/photon jet only needs 1)
-            if ((*SignalJetPt)[iJ] > MaxPT) {
-                // there's probably a more clever way of using arrays and shifting values but yolo life's too short
-                // if new pt is > max pt, then replace 2nd max with the og max, and make the current the max
-                MaxPTEventIndex2 = MaxPTEventIndex;
-                MaxPT2 = MaxPT;
-                MaxPTEventIndex = iJ;
-                MaxPT = (*SignalJetPt)[iJ];
-            } else if ((*SignalJetPt)[iJ] > MaxPT2) {
-                // ow if new pt > 2nd max, then just replace 2nd max
-                MaxPTEventIndex2 = iJ;
-                MaxPT2 = (*SignalJetPt)[iJ];
+            if(Tree == nullptr)
+            {
+                File.Close();
+                return 0;
             }
-        }
 
-        cout << "max pt event idx: " << MaxPTEventIndex << ", max pt event idx 2: " << MaxPTEventIndex2 << endl;
-        
-        double etaJetLeading = -INFINITY;
-        double etaJetSubLeading = -INFINITY;
-        double phiJetLeading = -INFINITY;
-        double phiJetSubLeading = -INFINITY;
+            int EntryCount = Tree->GetEntries();
+            cout << "Entry count... " << to_string(EntryCount) << endl;
 
-        if (MaxPTEventIndex > -1) {
-            etaJetLeading = (*SignalJetEta)[MaxPTEventIndex];
-            phiJetLeading = (*SignalJetPhi)[MaxPTEventIndex];
-            outFile << "######################" << " Leading Jet: Eta " << etaJetLeading << ", Phi " << phiJetLeading << " ######################" << endl;
-        }
-        if (MaxPTEventIndex2 > -1) {
-            etaJetSubLeading = (*SignalJetEta)[MaxPTEventIndex2];
-            phiJetSubLeading = (*SignalJetPhi)[MaxPTEventIndex2];
-            outFile << "######################" << " Subleading Jet: Eta " << etaJetSubLeading << ", Phi " << phiJetSubLeading << " ######################" << endl;
-        }
+            vector<double> *SignalJetNConstituent = nullptr;
+            vector<double> *SignalJetPt = nullptr;
+            vector<double> *Weight = nullptr;
+            vector<double> *SignalJetPhi = nullptr;
+            vector<double> *SignalJetEta = nullptr;
+            vector <double> *LeadingZPhi = nullptr;
+            vector <double> *LeadingPhotonPhi = nullptr;
+            vector <double> *LeadingPhotonEta = nullptr;
+            vector <double> *LeadingPhotonPt = nullptr;
+            vector<double> *ParticlesPx = nullptr;
+            vector<double> *ParticlesPy = nullptr;
+            vector<double> *ParticlesPz = nullptr;
+            vector<int> *ParticlesID = nullptr;
+            vector<double> *ParticlesEta = nullptr;
+            vector<double> *ParticlesPhi = nullptr;
+            vector<double> *SignalJetMatrixElem = nullptr;
+            vector<double> *SignalJetMatrixElemPx = nullptr;
+            vector<double> *SignalJetMatrixElemDR = nullptr;
 
-    
+            Tree->SetBranchAddress("SignalJetNConstituent", &SignalJetNConstituent);
+            Tree->SetBranchAddress("SignalJetPt", &SignalJetPt);
+            Tree->SetBranchAddress("SignalJetPhi", &SignalJetPhi);
+            Tree->SetBranchAddress("SignalJetEta", &SignalJetEta);
+            Tree->SetBranchAddress("LeadingZPhi", &LeadingZPhi);
+            Tree->SetBranchAddress("LeadingPhotonPhi", &LeadingPhotonPhi);
+            Tree->SetBranchAddress("LeadingPhotonEta", &LeadingPhotonEta);
+            Tree->SetBranchAddress("LeadingPhotonPt", &LeadingPhotonPt);
+            Tree->SetBranchAddress("EventWeight", &Weight);
+            Tree->SetBranchAddress("ParticlesEta", &ParticlesEta);
+            Tree->SetBranchAddress("ParticlesPhi", &ParticlesPhi);
+            Tree->SetBranchAddress("ParticlesPx", &ParticlesPx);
+            Tree->SetBranchAddress("ParticlesPy", &ParticlesPy);
+            Tree->SetBranchAddress("ParticlesPz", &ParticlesPz);
+            Tree->SetBranchAddress("pdg_id", &ParticlesID);
+            Tree->SetBranchAddress("SignalJetMatrixElemPx", &SignalJetMatrixElemPx);
+            Tree->SetBranchAddress("SignalJetMatrixElem", &SignalJetMatrixElem);
+            Tree->SetBranchAddress("SignalJetMatrixElemDR", &SignalJetMatrixElemDR);
 
-        // cout << etaJetLeading << " " << phiJetLeading << " " << etaJetSubLeading << " " << phiJetSubLeading << " " << endl;
+            // for(int iE: events)
+            for(int iE = 0; iE < EntryCount; iE++)
+            {
+                Tree->GetEntry(iE);
 
-        // aight now we gotta get all the particles
-        //  find the dr value and color code
-        for (int iP=0; iP < NParticles; iP++) {
-            int colorIndex = getColorIndex((*ParticlesEta)[iP], etaJetLeading, etaJetSubLeading, (*ParticlesPhi)[iP], phiJetLeading, phiJetSubLeading, (*ParticlesID)[iP]);
-            outFile << (*ParticlesPx)[iP] << "," << (*ParticlesPy)[iP] << "," << (*ParticlesPz)[iP] << "," << colorIndex << endl;
+                if(SignalJetPt == nullptr)
+                    continue;
+
+
+                int NJet = SignalJetPt->size();
+                int NParticles = ParticlesID->size();
+
+                // cout << iE << ", particles " << NParticles << endl;
+
+                double MaxPT = 0; // to find max pt jet in event
+                int MaxPTEventIndex = -1;
+                double MaxPT2 = 0; // to find second max pt jet in event
+                int MaxPTEventIndex2 = -1;
+
+                // iterate through the jets in the event to find the leading jets
+                for(int iJ = 0; iJ < NJet; iJ++)
+                {
+                    // cout << "leading photon phi: "<< (*LeadingPhotonPhi)[0] << ", eta: "<< (*LeadingPhotonEta)[iJ]<< ", pt: "<< (*LeadingPhotonPt)[0] << endl;
+                    // cout << "signal jet phi: "<< (*SignalJetPhi)[0] << ", signal jet eta: "<< (*SignalJetEta)[iJ] << endl;
+                    if((*SignalJetPt)[iJ] < 100 || (*SignalJetPt)[iJ] > 120) continue;
+                    // if((*SignalJetPt)[iJ] < MinPT) continue;
+                    if((*SignalJetMatrixElem)[iJ] <= 0) continue;
+                    // if(zJet && !oppositeHemisphere((*LeadingZPhi)[0], (*SignalJetPhi)[iJ])) continue; // if its a z jet and not in the opposite hemisphere according to leading z phi
+                    if(!oppositeHemisphere((*LeadingPhotonPhi)[0], (*SignalJetPhi)[iJ])) continue; // same logic but photons
+
+                    // cout << "signal jet pt: "<< (*SignalJetPt)[iJ] << endl;
+
+                    // now let's try to find the leading 2 jets! (we'll find leading 2 even tho there may just be 1.. or zjet/photon jet only needs 1)
+                    if ((*SignalJetPt)[iJ] > MaxPT) {
+                        // there's probably a more clever way of using arrays and shifting values but yolo life's too short
+                        // if new pt is > max pt, then replace 2nd max with the og max, and make the current the max
+                        MaxPTEventIndex2 = MaxPTEventIndex;
+                        MaxPT2 = MaxPT;
+                        MaxPTEventIndex = iJ;
+                        MaxPT = (*SignalJetPt)[iJ];
+                    } else if ((*SignalJetPt)[iJ] > MaxPT2) {
+                        // ow if new pt > 2nd max, then just replace 2nd max
+                        MaxPTEventIndex2 = iJ;
+                        MaxPT2 = (*SignalJetPt)[iJ];
+                    }
+                }
+
+                // cout << "max pt event idx: " << MaxPTEventIndex << ", max pt event idx 2: " << MaxPTEventIndex2 << endl;
+
+                if ((*SignalJetMatrixElemDR)[MaxPTEventIndex] < 1 || (*SignalJetNConstituent)[MaxPTEventIndex] > 5) continue;
+
+                cout << to_string((*SignalJetMatrixElemDR)[MaxPTEventIndex]) << ", " << to_string((*SignalJetNConstituent)[MaxPTEventIndex]) << endl;
+                
+                double etaJetLeading = -INFINITY;
+                double etaJetSubLeading = -INFINITY;
+                double phiJetLeading = -INFINITY;
+                double phiJetSubLeading = -INFINITY;
+
+                outFile << "################################" << "File: " << folder + "/" + fileName << " ################################" << endl;
+                outFile << "################################" << " Event " << iE << " ################################" << endl;
+
+                if (MaxPTEventIndex > -1) {
+                    etaJetLeading = (*SignalJetEta)[MaxPTEventIndex];
+                    phiJetLeading = (*SignalJetPhi)[MaxPTEventIndex];
+                    outFile << "######################" << " Leading Jet: Eta " << etaJetLeading << ", Phi " << phiJetLeading << " ######################" << endl;
+                    cout << "Matrix Elem: " << to_string((*SignalJetMatrixElem)[MaxPTEventIndex]) << ", px: " << to_string((*SignalJetMatrixElemPx)[MaxPTEventIndex]) << endl;
+                }
+                if (MaxPTEventIndex2 > -1) {
+                    etaJetSubLeading = (*SignalJetEta)[MaxPTEventIndex2];
+                    phiJetSubLeading = (*SignalJetPhi)[MaxPTEventIndex2];
+                    outFile << "######################" << " Subleading Jet: Eta " << etaJetSubLeading << ", Phi " << phiJetSubLeading << " ######################" << endl;
+                } 
+
+                // cout << etaJetLeading << " " << phiJetLeading << " " << etaJetSubLeading << " " << phiJetSubLeading << " " << endl;
+
+                // aight now we gotta get all the particles
+                //  find the dr value and color code
+                for (int iP=0; iP < NParticles; iP++) {
+                    int colorIndex = getColorIndex((*ParticlesEta)[iP], etaJetLeading, etaJetSubLeading, (*ParticlesPhi)[iP], phiJetLeading, phiJetSubLeading, (*ParticlesID)[iP]);
+                    outFile << (*ParticlesPx)[iP] << "," << (*ParticlesPy)[iP] << "," << (*ParticlesPz)[iP] << "," << colorIndex << endl;
+                }
+            }
+            File.Close();
         }
     }
-    File.Close();
     
 
     return 0;

@@ -12,8 +12,8 @@ using namespace std;
 #include <math.h>
 
 // g++ PlotJetShapeTopics.cpp $(root-config --cflags --libs) -O2 -o "plotJetShapeTopics.exe"
-// ./plotJetShapeTopics.exe -input "/data/kying/EMMIResults/pp150,/data/kying/EMMIResults/PbPb150_0_10"
-
+// ./plotJetShapeTopics.exe -input "/data/kying/EMMIResults/pp80,/data/kying/EMMIResults/PbPb80_0_10"
+// ./plotJetShapeTopics.exe -input "/data/kying/final80/pp80,/data/kying/final80/ppPhotonJet80" -kappas "80_pt80100_eta_pp80_pp80_photonjet_SN,N=4_400,16000,14000_0_80" -minpt 80 -maxpt 100 
 
 // tracks are charged particles
 // use particleseta, particlesphi, signaljeteta, signaljetphi
@@ -37,7 +37,7 @@ pair<vector<double>, vector<double>> readAllKappas(string filePath){
     pair<vector<double>, vector<double>> result;
 
     // Create an input filestream
-    ifstream kappasFile("./x100_pppbpb_kappas.csv");
+    ifstream kappasFile(filePath);
 
     // Make sure the file is open
     if(!kappasFile.is_open()) throw runtime_error("Could not open kappas csv file");
@@ -95,15 +95,6 @@ pair<pair<double, double>, pair<double, double>> getKappa(string filePath){
     return result;
 }
 
-// def topic_and_err(p1, p1_errs, p2, p2_errs, kappa, kappa_errs):
-//     topic = (p1 - kappa*p2)/(1-kappa)
-//     topic_errs = np.sqrt((p1 - p2)**2 * kappa_errs**2 + (1 - kappa)**2 * (p1_errs**2 + kappa**2 * p2_errs**2)) / (1 - kappa)**2
-//     return [topic, topic_errs]
-
-// def calc_topics(p1, p1_errs, p2, p2_errs, kappa12, kappa21):
-//     return [topic_and_err(p1,p1_errs,p2,p2_errs,*kappa12), topic_and_err(p2,p2_errs,p1,p1_errs,*kappa21)]
-
-
 double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
     // this is the reconstructed track's radial distance from jet axis (defined by etaJet and phiJet)
     // tracks = charged particles
@@ -125,256 +116,329 @@ double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
     return sqrt(pow(deta,2) + pow(dphi, 2));
 }
 
-tuple<string, string, string> getDataLabel(string fileName){
-    string dataLabel, label, legendLabel;
-    if (fileName.find("ZJet") != string::npos){
-        dataLabel = "#splitline{Data: pyquen ppZJet150}{(pp z-jet)}";
-        // dataLabel = " (pp ZJet) (Data: pyquen ppZJet150)";
-        label = "pp150_1_zjet";
-        legendLabel = "ppZJet150";
-    } else if (fileName.find("PbPbWide") != string::npos){
-        dataLabel = "#splitline{Data: pyquen PbPbWide150_0_10}{(PbPb wide dijet)}";
-        // dataLabel = " (PbPb wide) (Data: pyquen PbPbWide150_0_10)";
-        label = "pbpb150_0_10_1_wide";
-        legendLabel = "PbPbWide150";
-    } else if (fileName.find("PbPb") != string::npos){
-        dataLabel = "#splitline{Data: pyquen PbPb150_0_10}{(PbPb dijet)}";
-        // dataLabel = " (PbPb) (Data: pyquen PbPb150_0_10)";
-        label = "pbpb150_0_10_1";
-        legendLabel = "PbPb150";
-    } else {
-        dataLabel = "#splitline{Data: pyquen pp150}{(pp dijet)}";
-        // dataLabel = " (pp Dijet) (Data: pyquen pp150)";
-        label = "pp150_1";
-        legendLabel = "pp150";
+tuple<string, string, string> getDataLabel(string folder) {
+    // given the folder, return how to modify the title, the label of the output file, and the label in the legend
+    string titleMod, label, legendLabel;
+    if (folder.find("ppZJet") != string::npos){
+        titleMod = " (pp z-jet) (Data: pyquen ppZJet80)";
+        label = "pp80_zjet";
+        legendLabel = "ppZJet80";
+    } else if (folder.find("PbPbWideZJet") != string::npos) {
+        titleMod = " (PbPb wide z-jet) (Data: pyquen PbPbWideZJet80)";
+        label = "pbpb80_0_10_wide_zjet";
+        legendLabel = "PbPbWideZJet80";
+    } else if (folder.find("ppPhotonJet") != string::npos) {
+        titleMod = " (pp photon jet) (Data: pyquen ppPhotonJet80)";
+        label = "pp80_photonjet";
+        legendLabel = "ppPhotonJet80";
+    } else if (folder.find("PbPbWidePhotonJet") != string::npos) {
+        titleMod = " (PbPb wide photon jet) (Data: pyquen PbPbWidePhotonJet80)";
+        label = "pbpb80_0_10_wide_photonjet";
+        legendLabel = "PbPbWidePhotonJet80";
+    } else if (folder.find("PbPbWide") != string::npos){
+        titleMod = " (PbPb wide) (Data: pyquen PbPbWide80_0_10)";
+        label = "pbpb80_0_10_wide";
+        legendLabel = "PbPbWide80";
+    } else if (folder.find("PbPb") != string::npos){
+        titleMod = " (PbPb) (Data: pyquen PbPb80_0_10)";
+        label = "pbpb80_0_10";
+        legendLabel = "PbPb80";
+    } else if (folder.find("pp") != string::npos){
+        titleMod = " (pp dijet) (Data: pyquen pp80)";
+        label = "pp80";
+        legendLabel = "pp80";
     }
-    return make_tuple(dataLabel, label, legendLabel);
+
+    return make_tuple(titleMod, label, legendLabel);
+}
+
+bool oppositeHemisphere(double particlePhi, double jetPhi) {
+    if(particlePhi >= 0) {
+        double dPhi = particlePhi - jetPhi;
+        if(dPhi < -M_PI)   dPhi = dPhi + 2 * M_PI;
+        if(dPhi > +M_PI)   dPhi = dPhi - 2 * M_PI;
+
+        if(dPhi < - M_PI / 2 || dPhi > M_PI / 2) {
+            return true;
+        }
+        return false;
+    }
+    // todo: what if there is no leading Z?
+    return false; // false for now.. don't count it
 }
 
 int main(int argc, char *argv[]) {
-    bool TESTING = true;
-
     SetThesisStyle();
+     
     CommandLine CL(argc, argv);
-    // string fileName = CL.Get("input");
-    double trackPtCut = CL.GetDouble("trkpt", 1.0);
-    double minPT = CL.GetDouble("minpt", 100);
-    double dr = CL.GetDouble("dr", 0.05);  // bins are [0, 0.05), [0.05, 0.10), [0.10, 0.15), ... [0.25, 0.30)
-    double maxR = CL.GetDouble("maxr", 0.30);  // max value of max on rightmost bin
+
     vector<string> InputFileFolders = CL.GetStringVector("input");
-
-    // TMultiGraph* mg = new TMultiGraph();
-    TCanvas* cn = new TCanvas("cn","cn",1200,900);
-    TLegend* legend = new TLegend(0.7,0.7,0.9,0.85);
-    // TLegend* legend = new TLegend(0.1, 0.1, 0.3, 0.3);
-
-    int plotColor = 2;
+    double MinPT = CL.GetDouble("minpt", 0);
+    double MaxPT = CL.GetDouble("maxpt", 500);
+    double trackPtCut = CL.GetDouble("trkpt", 1.0);
+    string kappasFile = CL.Get("kappas");
+    double dr = CL.GetDouble("dr", 0.05);  // bins are [0, 0.05), [0.05, 0.10), [0.10, 0.15), ... [0.25, 0.30)
+    double MaxR = CL.GetDouble("maxr", 0.30);  // max value of max on rightmost bin
     
-    // double dr = 0.05;
-    // Int_t n = 6;
-    Int_t n = (int) ceil(maxR/dr);
-    Int_t nTopics = 2;
-    Double_t x[n], y[nTopics][n];
-    Double_t ex[n], ey[nTopics][n];
-    string legendLabels[nTopics];
+    bool pp = true; // boolean for title of plot
+
+    pair<pair<double, double>, pair<double, double>> kappas = getKappa("./kappas/" + kappasFile + ".csv"); // should be pp then PbPb
+    cout << "Got kappas... kappa12: " << kappas.first.first << ", kappa21: " << kappas.second.first << endl;
+
+    int NBins = (int) ceil(MaxR/dr);
+    Int_t NTopics = 2;
+    Double_t x[NBins], y[NTopics*3][NBins]; // 01 original, 23 q/g truth, 45 topics
+    Double_t ex[NBins], ey[NTopics*3][NBins];
+    string legendLabels[NTopics*3];
     double yMin = INFINITY;
     double yMax = -INFINITY;
 
-    // get kappa value so that we can calculate topic = (p1 - kappa*p2)/(1-kappa)
-    pair<pair<double, double>, pair<double, double>> kappas = getKappa("./x100_pppbpb_kappas.csv"); // should be pp then PbPb
-    cout << "Got kappas... kappa12: " << kappas.first.first << ", kappa21: " << kappas.second.first << endl;
+    int count[NTopics+1][NBins]; // 0 will be for the folder, 1 quark, 2 gluon
+    double rho[NTopics+1][NBins];
+    for (int i=0; i < NTopics+1; i++) {
+        fill(count[i], count[i]+NBins, 0);
+        fill(rho[i], rho[i]+NBins, 0);
+    }
 
-    // now get the two topics (make sure that the order is consistent)
-    for(int f=0; f < nTopics; f++) {  // TODO: hard coded that there would be 2 inputs
+    for(int f=0; f < NTopics; f++) {
         string folder = InputFileFolders[f];
-        string dataLabel, fileLabel, legendLabel;
-
-        double rA, rB;
-        double rho, count, totalyerr;
-        for (int bin=0; bin < n; bin++){
-            rA = bin * dr;
-            rB = (bin + 1) * dr;
-
-            rho = 0;
-            count = 0;
-            totalyerr = 0;
-
-            struct dirent *de; // to get files in path
-            DIR *dir = opendir(folder.c_str());
-            if (dir == NULL)  // opendir returns NULL if couldn't open directory 
-            { 
-                cout << "Could not open directory: " << folder << endl;
-                return 0; 
-            }
-
-            int fileCount = 0;
-
-            while ((de = readdir(dir)) != NULL) {
-                if ( !strcmp(de->d_name, ".") || !strcmp(de->d_name, "..") ) {continue;}
-                if (TESTING && fileCount == 4) { break; }
-                string fileName = de->d_name;
-                TFile File((folder + "/" + fileName).c_str());
-                tie(dataLabel, fileLabel, legendLabel) = getDataLabel(fileName);
-
-                TTree *tree = (TTree *)File.Get("JetTree");
-
-                if(tree == nullptr)
-                {
-                    File.Close();
-                    return 0;
-                }
-
-                fileCount += 1;
-
-                // signal jet eta: SignalJet04Eta --> approx 3779 entries (range from -pi to pi)
-                // signal jet phi: SignalJet04Phi --> same # entries (range from 0 to 2pi)
-                // signal jet pt: SignalJet04Pt --> 3779 (range from 0 to approx 500?)
-                // particles eta: ParticlesEta --> approx 249374 entries (looks like range from -9 to +9)
-                // particles phi: ParticlesPhi --> same # of entries (range from 0 to 2pi)
-                vector<double> *signalJetEta = nullptr;
-                vector<double> *signalJetPhi = nullptr;
-                vector<double> *signalJetPt = nullptr;
-                vector<double> *weight = nullptr;
-                vector<double> *particlesPt = nullptr;
-                vector<double> *particlesEta = nullptr;
-                vector<double> *particlesPhi = nullptr;
-
-                tree->SetBranchAddress("SignalJet04Eta", &signalJetEta);
-                tree->SetBranchAddress("SignalJet04Phi", &signalJetPhi);
-                tree->SetBranchAddress("SignalJet04Pt", &signalJetPt);
-                tree->SetBranchAddress("EventWeight", &weight);
-                tree->SetBranchAddress("ParticlesPt", &particlesPt);
-                tree->SetBranchAddress("ParticlesEta", &particlesEta);
-                tree->SetBranchAddress("ParticlesPhi", &particlesPhi);
-
-                // if we use h-> GetEntries(), this is number of entries = number of jets
-                int entryCount = tree->GetEntries();  // N = N_event, this is per-event count
-                // cout << "n entries in tree: " << entryCount << endl;
-
-                // int particlesCount = 0;
-
-                for(int i = 0; i < entryCount; i++)  // iterating through every entry in the tree
-                {
-                    tree->GetEntry(i);
-
-                    if(signalJetPt == nullptr) {continue;}
-
-                    int nJet = signalJetPt->size();
-                    // cout << "jets: " << nJet << endl;
-                    int nParticles = particlesEta->size();
-                    // cout << "particles: " << nParticles << endl;
-                    // particlesCount += nParticles;
-
-                    for(int j = 0; j < nJet; j++) // iterating through each signal jet
-                    {
-                        if ((*signalJetPt)[j] < minPT) continue;
-                        double yerr = 0;
-                        double sumTrackPts = 0;
-                        count += (*weight)[0];
-                        
-                        // now we need to iterate through each track (charged particle) in the signal jet
-                        for (int k = 0; k < nParticles; k++){
-                            if ((*particlesPt)[k] > trackPtCut && abs((*signalJetEta)[j]) > 0.3 && abs((*signalJetEta)[j]) < 2) { // only for particles > trackPtCut
-                                double r = getR((*particlesEta)[k], (*signalJetEta)[j], (*particlesPhi)[k], (*signalJetPhi)[j] ); 
-
-                                // check track is in [rA, rB)
-                                if (r >= rA && r < rB) {
-                                    // pT of track to var
-                                    sumTrackPts += (*particlesPt)[k]; 
-                                    yerr += pow((*particlesPt)[k] * (*weight)[0] / (*signalJetPt)[j], 2);
-                                }
-                            }
-                        }
-                        // divide summed pT of track by pT of jet and add to var
-                        rho += sumTrackPts * (*weight)[0] / (*signalJetPt)[j];
-
-                        totalyerr += yerr;
-                    }
-                }
-                File.Close();
-                // cout << "rho: " << rho << " count: " <<  count << endl;
-            }
-            rho *= 1/dr * 1/count;
-            // totalyerr = sqrt(totalyerr) * 1/dr * 1/count;
-            cout << rA + 0.5 * dr << " " << rho << endl;
-            x[bin] = rA + 0.5 * dr;
-            ex[bin] = 0.5 * dr;
-            y[f][bin] = rho;
-            // ey[f][bin] = totalyerr;
-            ey[f][bin] = 0;
+        cout << folder << endl;
+        struct dirent *de; // to get files in path
+        DIR *dir = opendir(folder.c_str()); 
+        if (dir == NULL)  // opendir returns NULL if couldn't open directory 
+        { 
+            cout << "Could not open directory: " << folder << endl;
+            return 0; 
         }
 
-        double currMin = *min_element(y[f], y[f]+n);
-        yMin = min(currMin, yMin);
-        double currMax = *max_element(y[f], y[f]+n);
-        yMax = max(currMax, yMax);
+        string titleMod, label;
+        TString legendLabel;
+        tie(titleMod, label, legendLabel) = getDataLabel(folder);
+
+        if (legendLabel == "PbPbWide80") pp = false;
+
+        // INITIALIZING THE BUCKETS FOR JET SHAPE
+        // int count [NBins];
+        // double rho [NBins];
+        fill(count[0], count[0]+NBins, 0);
+        fill(rho[0], rho[0]+NBins, 0);
+
+        bool photonJet = false;
+        if (folder.find("PhotonJet") != string::npos) photonJet = true;
+
+        int fileCount = 0;
+        while ((de = readdir(dir)) != NULL) {
+            if ( !strcmp(de->d_name, ".") || !strcmp(de->d_name, "..") ) continue;
+            // if (fileCount >= 10) continue; // REMOVE
+            string fileName = de->d_name;
+            TFile File((folder + "/" + fileName).c_str());
+
+            // cout << "Filename: " << fileName << endl;
+
+            TTree *Tree = (TTree *)File.Get("JetTree");
+
+            if(Tree == nullptr)
+            {
+                File.Close();
+                continue;
+            }
+
+            fileCount += 1; // REMOVE
+
+            vector<double> *SignalJetNConstituent = nullptr;
+            vector<double> *SignalJetMatrixElem = nullptr;
+            vector<double> *SignalJetPt = nullptr;
+            vector<double> *Weight = nullptr;
+            vector<double> *SignalJetPhi = nullptr;
+            vector<double> *SignalJetEta = nullptr;
+            vector <double> *LeadingZPhi = nullptr;
+            vector <double> *LeadingPhotonPhi = nullptr;
+            vector<vector<double>> *SignalJetConstituentPt = nullptr;
+            vector<vector<double>> *SignalJetConstituentEta = nullptr;
+            vector<vector<double>> *SignalJetConstituentPhi = nullptr;
+            vector<vector<double>> *SignalJetConstituentPid = nullptr;
+
+            Tree->SetBranchAddress("SignalJetNConstituent", &SignalJetNConstituent);
+            Tree->SetBranchAddress("SignalJetMatrixElem", &SignalJetMatrixElem);
+            Tree->SetBranchAddress("SignalJetPt", &SignalJetPt);
+            Tree->SetBranchAddress("SignalJetPhi", &SignalJetPhi);
+            Tree->SetBranchAddress("SignalJetEta", &SignalJetEta);
+            Tree->SetBranchAddress("LeadingZPhi", &LeadingZPhi);
+            Tree->SetBranchAddress("LeadingPhotonPhi", &LeadingPhotonPhi);
+            Tree->SetBranchAddress("EventWeight", &Weight);
+            Tree->SetBranchAddress("SignalJetConstituentPt", &SignalJetConstituentPt);
+            Tree->SetBranchAddress("SignalJetConstituentEta", &SignalJetConstituentEta);
+            Tree->SetBranchAddress("SignalJetConstituentPhi", &SignalJetConstituentPhi);
+            Tree->SetBranchAddress("SignalJetConstituentPid", &SignalJetConstituentPid);
+
+            int EntryCount = Tree->GetEntries();
+            // cout << "Entry count... " << to_string(EntryCount) << endl;
+            for(int iE = 0; iE < EntryCount; iE++)
+            {
+                Tree->GetEntry(iE);
+
+                if(SignalJetPt == nullptr)
+                    continue;
+
+                int NJet = SignalJetPt->size();
+                double MaxJetPT = 0; // to find max pt jet in event
+                int MaxJetPTEventIndex = -1;
+                double MaxJetPT2 = 0; // to find second max pt jet in event
+                int MaxJetPTEventIndex2 = -1;
+
+                for(int iJ = 0; iJ < NJet; iJ++)
+                {
+                    if((*SignalJetPt)[iJ] < MinPT || (*SignalJetPt)[iJ] > MaxPT) continue;
+                    // if((*SignalJetMatrixElem)[iJ] <= 0) continue; // if the matrix element is undefined then continue
+                    if(fabs((*SignalJetEta)[iJ]) >= 1) continue; // if abs(eta) > 1 then continue
+                    // if((*SignalJetMatrixElemDR)[iJ] > 0.4) continue;
+                    // if(zJet && !oppositeHemisphere((*LeadingZPhi)[0], (*SignalJetPhi)[iJ])) continue; // if its a z jet and not in the opposite hemisphere according to leading z phi
+                    if(photonJet && !oppositeHemisphere((*LeadingPhotonPhi)[0], (*SignalJetPhi)[iJ])) continue; // same logic but photons
+                    
+
+                    // now let's try to find the leading 2 jets! (we'll find leading 2 even tho there may just be 1.. or zjet/photon jet only needs 1)
+                    if ((*SignalJetPt)[iJ] > MaxJetPT) {
+                        // there's probably a more clever way of using arrays and shifting values but yolo life's too short
+                        // if new pt is > max pt, then replace 2nd max with the og max, and make the current the max
+                        MaxJetPTEventIndex2 = MaxJetPTEventIndex;
+                        MaxJetPT2 = MaxJetPT;
+                        MaxJetPTEventIndex = iJ;
+                        MaxJetPT = (*SignalJetPt)[iJ];
+                    } else if ((*SignalJetPt)[iJ] > MaxJetPT2) {
+                        // ow if new pt > 2nd max, then just replace 2nd max
+                        MaxJetPTEventIndex2 = iJ;
+                        MaxJetPT2 = (*SignalJetPt)[iJ];
+                    }
+                }
+
+                int jetIdxs[2];
+                jetIdxs[0] = MaxJetPTEventIndex;
+                if (photonJet) jetIdxs[1] = -1;
+                else jetIdxs[1] = MaxJetPTEventIndex2;
+                for (int iJ : jetIdxs) {
+                    if (iJ == -1) continue;
+                    double sumTrackPts[NTopics+1][NBins];
+                    for (int i=0; i < NTopics + 1; i++) {
+                        fill(sumTrackPts[i], sumTrackPts[i]+NBins, 0);
+                    }
+
+                    int NParticles = (*SignalJetConstituentPt)[iJ].size();
+
+                    int matElem = (*SignalJetMatrixElem)[iJ];
+
+                    for (int iP = 0; iP < NParticles; iP++){
+                        if ((*SignalJetConstituentPt)[iJ][iP] > trackPtCut) {
+                            double r = getR((*SignalJetConstituentEta)[iJ][iP], (*SignalJetEta)[iJ], (*SignalJetConstituentPhi)[iJ][iP], (*SignalJetPhi)[iJ]);
+
+                            for (int bin=0; bin < NBins; bin++){
+                                if ((r >= bin * dr) & (r < (bin + 1) * dr)) {
+                                    if (matElem == 21) {
+                                        // gluon
+                                        sumTrackPts[2][bin] += (*SignalJetConstituentPt)[iJ][iP];
+                                    } else {
+                                        sumTrackPts[1][bin] += (*SignalJetConstituentPt)[iJ][iP];
+                                    }
+                                    sumTrackPts[0][bin] += (*SignalJetConstituentPt)[iJ][iP];
+                                }
+                            }
+
+                        }
+                    }
+                    for (int bin=0; bin < NBins; bin++){
+                        if (matElem == 21) {
+                            // gluon
+                            rho[2][bin] += sumTrackPts[2][bin] * (*Weight)[0] / (*SignalJetPt)[iJ];
+                            count[2][bin] += (*Weight)[0];
+                        } else {
+                            rho[1][bin] += sumTrackPts[1][bin] * (*Weight)[0] / (*SignalJetPt)[iJ];
+                            count[1][bin] += (*Weight)[0];
+                        }
+                        rho[0][bin] += sumTrackPts[0][bin] * (*Weight)[0] / (*SignalJetPt)[iJ];
+                        count[0][bin] += (*Weight)[0];
+                    }
+                }
+            }
+            File.Close();
+        }
+        for (int bin=0; bin < NBins; bin++){
+            rho[0][bin] *= 1 / dr * 1 / count[0][bin];
+            cout << (bin + 0.5) * dr << " " << rho[0][bin] << endl;
+            x[bin] = (bin + 0.5) * dr;
+            ex[bin] = 0.5 * dr;
+            y[f][bin] = rho[0][bin];
+            ey[f][bin] = 0;
+        }
         legendLabels[f] = legendLabel;
     }
+
+    for (int bin=0; bin < NBins; bin++){
+        rho[1][bin] *= 1 / dr * 1 / count[1][bin];
+        rho[2][bin] *= 1 / dr * 1 / count[2][bin];
+
+        y[2][bin] = rho[1][bin];
+        y[3][bin] = rho[2][bin];
+
+        cout << "rho q,  rho g: " << rho[1][bin] << ", " << rho[2][bin] << endl;
+        ey[2][bin] = 0;
+        ey[3][bin] = 0;
+    }
+    legendLabels[2] = "Quark";
+    legendLabels[3] = "Gluon";
 
     cout << "Successfully got og jet shape" << endl;
 
     // ok now we have our jet shape value for each bucket.. calculate the fractions using the formula! topic = (p1 - kappa*p2)/(1-kappa)
-    Double_t topics[nTopics][n], topicsErr[nTopics][n];
-    for(int i=0; i < n; i++) {
-        topics[0][i] = (y[0][i] - kappas.first.first * y[1][i]) / (1 - kappas.first.first);
-        topics[1][i] = (y[1][i] - kappas.second.first * y[0][i]) / (1 - kappas.second.first);
+    for(int i=0; i < NBins; i++) {
+        cout << "kappa second: " << kappas.second.first << endl;
+        cout << "y1: " << y[1][i] << ", y0: " << y[0][i] << endl;
+        y[4][i] = (y[0][i] - kappas.first.first * y[1][i]) / (1 - kappas.first.first);
+        y[5][i] = (y[1][i] - kappas.second.first * y[0][i]) / (1 - kappas.second.first);
 
-        topicsErr[0][i] = 0;
-        topicsErr[1][i] = 0;
+        ey[4][i] = 0;
+        ey[5][i] = 0;
+    }
+    legendLabels[4] = "Topic 1";
+    legendLabels[5] = "Topic 2";
+
+    for (int i=0; i < NTopics * 3 ; i++) {
+        yMin = min(yMin, *min_element(y[i], y[i]+NBins));
+        yMax = max(yMax, *max_element(y[i], y[i]+NBins));
     }
 
-    cout << "Successfully got jet shape as topics" << endl;
+    cout << "ymin and ymax: " << yMin << ", " << yMax << endl;
 
-    yMin = min(yMin, *min_element(topics[0], topics[0]+n));
-    yMin = min(yMin, *min_element(topics[1], topics[1]+n));
-    yMax = max(yMax, *max_element(topics[0], topics[0]+n));
-    yMax = max(yMax, *max_element(topics[1], topics[1]+n));
+    TCanvas* cn = new TCanvas("cn","cn",1200,900);
 
-    cout << "min: " << yMin << ", max: " << yMax << endl;
+    TLegend* legend = new TLegend(0.7,0.7,0.9,0.85);
+    int plotColor;
+    vector<int> primaryColors = GetPrimaryColors();
+    vector<int> diffColors = GetDifferentiableColors();
+    vector<int> diffLightColors = GetDifferentiableColorsLight();
 
     // PLOTTING TOPICS JET SHAPE
-    for (int i=0; i < nTopics; i++) {
-        if (i==0) plotColor = kViolet;
-        if (i==1) plotColor = kViolet+10;
-        TGraph* gr = new TGraphErrors(n, x, topics[i], ex, topicsErr[i]);
-        gr->SetTitle("Jet Shape;r;\\rho(r)");
+    // int startIndex = NTopics;
+    string sampleLabel = pp? "pp" : "PbPb";
+    int startIndex = NTopics;
+    for (int i=startIndex; i < NTopics*3; i++) {
+        if (i < NTopics) plotColor = 17 + i%2;
+        // else if (i < NTopics * 2) plotColor = kGray + i%2 + 1;
+        else if (i < NTopics * 2) plotColor = primaryColors[i%2];
+        else if (i < NTopics * 3) plotColor = 13 + (i%2)*2 ;
+        // plotColor = diffLightColors[i];
+        TGraph* gr = new TGraphErrors(NBins, x, y[i], ex, ey[i]);
+        gr->SetTitle(("Jet Shape (" + sampleLabel + ");r;\\rho(r)").c_str());
         gr->SetMarkerSize(1.2);
         gr->SetMarkerColor(plotColor);
-        gr->SetFillColor(plotColor);
-        // gr->SetFillStyle(3001);
-        gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
-        gr->GetYaxis()->SetMoreLogLabels();
-        if (i == 0) {
-            legend->AddEntry(gr, "Topic 1", "p");
-            gr->Draw("2apz");
-        } else if (i == 1) {
-            legend->AddEntry(gr, "Topic 2", "p");
-            gr->Draw("2pz same");
-        }
-        cn->Update();
-    }
-
-    // PLOTTING INPUT JET SHAPES
-    for (int i=0; i < nTopics; i++) {
-        if (i==0) plotColor = kGreen-7;
-        if (i==1) plotColor = kGreen+2;
-        TGraph* gr = new TGraphErrors(n, x, y[i], ex, ey[i]);
-        gr->SetTitle("Jet Shape;r;\\rho(r)");
-        gr->SetMarkerSize(1.2);
-        // gr->SetMarkerColor(plotColor + 2 + i);
-        gr->SetMarkerColor(plotColor);
-        // gr->SetFillColorAlpha(plotColor + 2 * i, 0.35);
         gr->SetFillColor(plotColor);
         // gr->SetFillStyle(3001);
         gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
         gr->GetYaxis()->SetMoreLogLabels();
         legend->AddEntry(gr, legendLabels[i].c_str(), "p");
-        // if (i == 0) {
-        //     gr->Draw("2apz");
-        // } else if (i == 1) {
-        //     gr->Draw("2pz same");
-        // }
-        gr->Draw("2pz same");
+        if (i == startIndex) {
+            gr->Draw("2apz");
+        } else {
+            gr->Draw("2pz same");
+        }
         cn->Update();
     }
 
@@ -385,7 +449,7 @@ int main(int argc, char *argv[]) {
     // draw text
     TLatex *text = new TLatex();
     text->SetTextSize(0.025);
-    string latexText = "#splitline{p_{T}^{track} > " + to_string((int)trackPtCut) + "GeV, p_{T}^{jet} > " + to_string((int)minPT) + "GeV}{0.3 < | #eta^{jet} | < 2 }"; //0.3 < |\\eta^{jet}| < 2
+    string latexText = "#splitline{p_{T}^{track} > " + to_string((int)trackPtCut) + "GeV, " + to_string((int)MinPT) + " GeV < p_{T}^{jet} < " + to_string((int)MaxPT) + "GeV}{| #eta^{jet} | < 1 }"; //0.3 < |\\eta^{jet}| < 2
     // string latexText = "#splitline{p_{T}^{track} > 1GeV, p_T^{jet} > 0GeV}{"+dataLabel+"}";
     // text->DrawLatexNDC(0.65, 0.82, latexText.c_str());
     text->DrawLatexNDC(0.15, 0.2, latexText.c_str());
@@ -404,7 +468,8 @@ int main(int argc, char *argv[]) {
     cn->SetRightMargin(0.05);
     cn->Update();
     cout << "before save" << endl;
-    cn->SaveAs(("./jetShapePlots/jetshapetopics_jetpt" + to_string((int)minPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(maxR) + "r_" + to_string(n) +"buckets.jpg").c_str());
+    cn->SaveAs(("./jetShapePlots/topics_" + kappasFile + "_jetpt" + to_string((int)MinPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(MaxR) + "r_" + to_string(NBins) +"buckets.jpg").c_str());
+    // cn->SaveAs("./jetShapePlots/temp.png");
 
     cout << "save plot" << endl;
 

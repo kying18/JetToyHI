@@ -12,7 +12,7 @@ using namespace std;
 #include <math.h>
 
 // g++ PlotJetShape.cpp $(root-config --cflags --libs) -O2 -o "plotJetShape.exe"
-// ./plotJetShape.exe -input "/data/kying/EMMIResults/pp150,/data/kying/EMMIResults/PbPb150_0_10,/data/kying/EMMIResults/PbPbWide150_0_10"
+// ./plotJetShape.exe -input "/data/kying/final80/pp80,/data/kying/final80/PbPbWide80_0_10"
 
 
 // tracks are charged particles
@@ -53,30 +53,40 @@ double getR(double etaTrack, double etaJet, double phiTrack, double phiJet) {
     return sqrt(pow(deta,2) + pow(dphi, 2));
 }
 
-tuple<string, string, string> getDataLabel(string fileName){
-    string dataLabel, label, legendLabel;
-    if (fileName.find("ZJet") != string::npos){
-        dataLabel = "#splitline{Data: pyquen ppZJet150}{(pp z-jet)}";
-        // dataLabel = " (pp ZJet) (Data: pyquen ppZJet150)";
-        label = "pp150_1_zjet";
-        legendLabel = "ppZJet150";
-    } else if (fileName.find("PbPbWide") != string::npos){
-        dataLabel = "#splitline{Data: pyquen PbPbWide150_0_10}{(PbPb wide dijet)}";
-        // dataLabel = " (PbPb wide) (Data: pyquen PbPbWide150_0_10)";
-        label = "pbpb150_0_10_1_wide";
-        legendLabel = "PbPbWide150";
-    } else if (fileName.find("PbPb") != string::npos){
-        dataLabel = "#splitline{Data: pyquen PbPb150_0_10}{(PbPb dijet)}";
-        // dataLabel = " (PbPb) (Data: pyquen PbPb150_0_10)";
-        label = "pbpb150_0_10_1";
-        legendLabel = "PbPb150";
-    } else {
-        dataLabel = "#splitline{Data: pyquen pp150}{(pp dijet)}";
-        // dataLabel = " (pp Dijet) (Data: pyquen pp150)";
-        label = "pp150_1";
-        legendLabel = "pp150";
+tuple<string, string, string> getDataLabel(string folder) {
+    // given the folder, return how to modify the title, the label of the output file, and the label in the legend
+    string titleMod, label, legendLabel;
+    if (folder.find("ppZJet") != string::npos){
+        titleMod = " (pp z-jet) (Data: pyquen ppZJet80)";
+        label = "pp80_zjet";
+        legendLabel = "ppZJet80";
+    } else if (folder.find("PbPbWideZJet") != string::npos) {
+        titleMod = " (PbPb wide z-jet) (Data: pyquen PbPbWideZJet80)";
+        label = "pbpb80_0_10_wide_zjet";
+        legendLabel = "PbPbWideZJet80";
+    } else if (folder.find("ppPhotonJet") != string::npos) {
+        titleMod = " (pp photon jet) (Data: pyquen ppPhotonJet80)";
+        label = "pp80_photonjet";
+        legendLabel = "ppPhotonJet80";
+    } else if (folder.find("PbPbWidePhotonJet") != string::npos) {
+        titleMod = " (PbPb wide photon jet) (Data: pyquen PbPbWidePhotonJet80)";
+        label = "pbpb80_0_10_wide_photonjet";
+        legendLabel = "PbPbWidePhotonJet80";
+    } else if (folder.find("PbPbWide") != string::npos){
+        titleMod = " (PbPb wide) (Data: pyquen PbPbWide80_0_10)";
+        label = "pbpb80_0_10_wide";
+        legendLabel = "PbPbWide80";
+    } else if (folder.find("PbPb") != string::npos){
+        titleMod = " (PbPb) (Data: pyquen PbPb80_0_10)";
+        label = "pbpb80_0_10";
+        legendLabel = "PbPb80";
+    } else if (folder.find("pp") != string::npos){
+        titleMod = " (pp dijet) (Data: pyquen pp80)";
+        label = "pp80";
+        legendLabel = "pp80";
     }
-    return make_tuple(dataLabel, label, legendLabel);
+
+    return make_tuple(titleMod, label, legendLabel);
 }
 
 int main(int argc, char *argv[]) {
@@ -114,9 +124,11 @@ int main(int argc, char *argv[]) {
     double yMin = *min_element(yData, yData+6);
     double yMax = *max_element(yData, yData+6);
 
-    for(int f=0; f < 3; f++) {  // TODO: hard coded that there would be 3 inputs
+    for(int f=0; f < 2; f++) {  // TODO: hard coded that there would be 2 inputs
         string folder = InputFileFolders[f];
         string dataLabel, fileLabel, legendLabel;
+
+        cout << folder << endl;
 
         double r_a, r_b;
         double rho, count, totalyerr;
@@ -135,13 +147,19 @@ int main(int argc, char *argv[]) {
             { 
                 cout << "Could not open directory: " << folder << endl;
                 return 0; 
-            } 
+            }
+
+            int numFiles = 0;
 
             while ((de = readdir(dir)) != NULL) {
                 if ( !strcmp(de->d_name, ".") || !strcmp(de->d_name, "..") ) {continue;}
                 string fileName = de->d_name;
                 TFile File((folder + "/" + fileName).c_str());
                 tie(dataLabel, fileLabel, legendLabel) = getDataLabel(fileName);
+
+                numFiles += 1;
+
+                if (numFiles % 20 == 0) cout << numFiles << endl;
 
                 TTree *tree = (TTree *)File.Get("JetTree");
 
@@ -164,9 +182,9 @@ int main(int argc, char *argv[]) {
                 vector<double> *particlesEta = nullptr;
                 vector<double> *particlesPhi = nullptr;
 
-                tree->SetBranchAddress("SignalJet04Eta", &signalJetEta);
-                tree->SetBranchAddress("SignalJet04Phi", &signalJetPhi);
-                tree->SetBranchAddress("SignalJet04Pt", &signalJetPt);
+                tree->SetBranchAddress("SignalJetEta", &signalJetEta);
+                tree->SetBranchAddress("SignalJetPhi", &signalJetPhi);
+                tree->SetBranchAddress("SignalJetPt", &signalJetPt);
                 tree->SetBranchAddress("EventWeight", &weight);
                 tree->SetBranchAddress("ParticlesPt", &particlesPt);
                 tree->SetBranchAddress("ParticlesEta", &particlesEta);
@@ -222,7 +240,7 @@ int main(int argc, char *argv[]) {
             // cout << "total jets count " << count  << endl;
             // cout << "total particles count " << particlesCount << endl;
             rho *= 1/dr * 1/count;
-            // cout << "rho at end: " << rho << ", count at end: " << count << endl;
+            cout << "rho at end: " << rho << ", count at end: " << count << endl;
             totalyerr = sqrt(totalyerr) * 1/dr * 1/count;
             cout << r_a + 0.5 * dr << " " << rho << endl;
             // hist->Fill(r_a + 0.5 * dr, rho); // x, y
