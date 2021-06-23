@@ -80,7 +80,7 @@ pair<double, double> getMeanAndStd(vector<double> & data){
     for (double d: data) {
         totalSquareDistMean += pow(d - mean, 2);
     }
-    double std = sqrt(totalSquareDistMean/totalN); // Note: should be totalN - 1 if sample, but tbh this is like diff between 999 and 1000
+    double std = sqrt(totalSquareDistMean/(totalN - 1)); // Note: should be totalN - 1 if sample, but tbh this is like diff between 999 and 1000
     result.second = std;
 
     return result;
@@ -195,9 +195,11 @@ int main(int argc, char *argv[]) {
 
     int count[NTopics+1][NBins]; // 0 will be for the folder, 1 quark, 2 gluon
     double rho[NTopics+1][NBins];
+    double rhoErrors[NTopics+1][NBins];
     for (int i=0; i < NTopics+1; i++) {
         fill(count[i], count[i]+NBins, 0);
         fill(rho[i], rho[i]+NBins, 0);
+        fill(rhoErrors[i], rhoErrors[i]+NBins, 0);
     }
 
     for(int f=0; f < NTopics; f++) {
@@ -229,7 +231,7 @@ int main(int argc, char *argv[]) {
         int fileCount = 0;
         while ((de = readdir(dir)) != NULL) {
             if ( !strcmp(de->d_name, ".") || !strcmp(de->d_name, "..") ) continue;
-            // if (fileCount >= 10) continue; // REMOVE
+            if (fileCount >= 10) continue; // REMOVE
             string fileName = de->d_name;
             TFile File((folder + "/" + fileName).c_str());
 
@@ -288,14 +290,12 @@ int main(int argc, char *argv[]) {
 
                 for(int iJ = 0; iJ < NJet; iJ++)
                 {
-                    if((*SignalJetPt)[iJ] < MinPT || (*SignalJetPt)[iJ] > MaxPT) continue;
                     // if((*SignalJetMatrixElem)[iJ] <= 0) continue; // if the matrix element is undefined then continue
-                    if(fabs((*SignalJetEta)[iJ]) >= 1) continue; // if abs(eta) > 1 then continue
+                    
                     // if((*SignalJetMatrixElemDR)[iJ] > 0.4) continue;
                     // if(zJet && !oppositeHemisphere((*LeadingZPhi)[0], (*SignalJetPhi)[iJ])) continue; // if its a z jet and not in the opposite hemisphere according to leading z phi
                     if(photonJet && !oppositeHemisphere((*LeadingPhotonPhi)[0], (*SignalJetPhi)[iJ])) continue; // same logic but photons
                     
-
                     // now let's try to find the leading 2 jets! (we'll find leading 2 even tho there may just be 1.. or zjet/photon jet only needs 1)
                     if ((*SignalJetPt)[iJ] > MaxJetPT) {
                         // there's probably a more clever way of using arrays and shifting values but yolo life's too short
@@ -317,9 +317,14 @@ int main(int argc, char *argv[]) {
                 else jetIdxs[1] = MaxJetPTEventIndex2;
                 for (int iJ : jetIdxs) {
                     if (iJ == -1) continue;
+                    if((*SignalJetPt)[iJ] < MinPT || (*SignalJetPt)[iJ] > MaxPT) continue;
+                    if(fabs((*SignalJetEta)[iJ]) >= 1) continue; // if abs(eta) > 1 then continue
+
                     double sumTrackPts[NTopics+1][NBins];
+                    double sumTrackPtsErrors[NTopics+1][NBins];
                     for (int i=0; i < NTopics + 1; i++) {
                         fill(sumTrackPts[i], sumTrackPts[i]+NBins, 0);
+                        fill(sumTrackPtsErrors[i], sumTrackPtsErrors[i]+NBins, 0);
                     }
 
                     int NParticles = (*SignalJetConstituentPt)[iJ].size();
@@ -335,25 +340,35 @@ int main(int argc, char *argv[]) {
                                     if (matElem == 21) {
                                         // gluon
                                         sumTrackPts[2][bin] += (*SignalJetConstituentPt)[iJ][iP];
+                                        sumTrackPtsErrors[2][bin] += pow((*SignalJetConstituentPt)[iJ][iP], 2);
                                     } else {
                                         sumTrackPts[1][bin] += (*SignalJetConstituentPt)[iJ][iP];
+                                        sumTrackPtsErrors[1][bin] += pow((*SignalJetConstituentPt)[iJ][iP], 2);
                                     }
                                     sumTrackPts[0][bin] += (*SignalJetConstituentPt)[iJ][iP];
+                                    sumTrackPtsErrors[0][bin] += pow((*SignalJetConstituentPt)[iJ][iP], 2);
                                 }
                             }
 
                         }
                     }
+
                     for (int bin=0; bin < NBins; bin++){
+                        for (int i = 0; i < 3; i++) {
+                            sumTrackPtsErrors[i][bin] = sqrt(sumTrackPtsErrors[i][bin]) / (*SignalJetPt)[iJ];
+                        }
                         if (matElem == 21) {
                             // gluon
                             rho[2][bin] += sumTrackPts[2][bin] * (*Weight)[0] / (*SignalJetPt)[iJ];
+                            rhoErrors[2][bin] += pow(sumTrackPtsErrors[2][bin], 2);
                             count[2][bin] += (*Weight)[0];
                         } else {
                             rho[1][bin] += sumTrackPts[1][bin] * (*Weight)[0] / (*SignalJetPt)[iJ];
+                            rhoErrors[1][bin] += pow(sumTrackPtsErrors[1][bin], 2);
                             count[1][bin] += (*Weight)[0];
                         }
                         rho[0][bin] += sumTrackPts[0][bin] * (*Weight)[0] / (*SignalJetPt)[iJ];
+                        rhoErrors[0][bin] += pow(sumTrackPtsErrors[0][bin], 2);
                         count[0][bin] += (*Weight)[0];
                     }
                 }
@@ -366,21 +381,19 @@ int main(int argc, char *argv[]) {
             x[bin] = (bin + 0.5) * dr;
             ex[bin] = 0.5 * dr;
             y[f][bin] = rho[0][bin];
-            ey[f][bin] = 0;
+            ey[f][bin] = 1 / dr * 1 / count[0][bin] * rhoErrors[0][bin];
         }
         legendLabels[f] = legendLabel;
     }
 
     for (int bin=0; bin < NBins; bin++){
-        rho[1][bin] *= 1 / dr * 1 / count[1][bin];
-        rho[2][bin] *= 1 / dr * 1 / count[2][bin];
+        for (int i=0; i < 2; i++) {
+            rho[i+1][bin] *= 1 / dr * 1 / count[i+1][bin];
 
-        y[2][bin] = rho[1][bin];
-        y[3][bin] = rho[2][bin];
+            y[i+2][bin] = rho[i+1][bin];
 
-        cout << "rho q,  rho g: " << rho[1][bin] << ", " << rho[2][bin] << endl;
-        ey[2][bin] = 0;
-        ey[3][bin] = 0;
+            ey[i+2][bin] = 1 / dr * 1 / count[i+1][bin] * rhoErrors[i+1][bin];
+        }
     }
     legendLabels[2] = "Quark";
     legendLabels[3] = "Gluon";
@@ -430,7 +443,8 @@ int main(int argc, char *argv[]) {
         gr->SetMarkerSize(1.2);
         gr->SetMarkerColor(plotColor);
         gr->SetFillColor(plotColor);
-        // gr->SetFillStyle(3001);
+        // gr->SetFillColorAlpha(plotColor, 0.35);
+        gr->SetFillStyle(3001);
         gr->GetYaxis()->SetRangeUser(yMin*0.8, yMax*1.3);
         gr->GetYaxis()->SetMoreLogLabels();
         legend->AddEntry(gr, legendLabels[i].c_str(), "p");
@@ -468,7 +482,7 @@ int main(int argc, char *argv[]) {
     cn->SetRightMargin(0.05);
     cn->Update();
     cout << "before save" << endl;
-    cn->SaveAs(("./jetShapePlots/topics_" + kappasFile + "_jetpt" + to_string((int)MinPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(MaxR) + "r_" + to_string(NBins) +"buckets.jpg").c_str());
+    cn->SaveAs(("./jetShapePlots/test_topics_" + kappasFile + "_jetpt" + to_string((int)MinPT) + "_trackpt" + to_string((int)trackPtCut) + "_" + to_string(MaxR) + "r_" + to_string(NBins) +"buckets.jpg").c_str());
     // cn->SaveAs("./jetShapePlots/temp.png");
 
     cout << "save plot" << endl;
